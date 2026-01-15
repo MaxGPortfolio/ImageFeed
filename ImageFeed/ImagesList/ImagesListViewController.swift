@@ -13,6 +13,10 @@ final class ImagesListViewController: UIViewController {
     
     private let photosName: [String] = Array(0..<20).map{ "\($0)" }
     
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
+    
     private lazy var dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         
