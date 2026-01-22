@@ -23,17 +23,19 @@ final class ImagesListCell: UITableViewCell {
     }
     
     private func setupDateGradient() {
-        dateBackgroundView.layer.cornerRadius = 16
-        dateBackgroundView.layer.masksToBounds = true
         
-        dateBackgroundView.layer.maskedCorners = [
+        dateGradientLayer.cornerRadius = 16
+        dateGradientLayer.masksToBounds = true
+        
+        dateGradientLayer.maskedCorners = [
             .layerMinXMaxYCorner,
             .layerMaxXMaxYCorner
         ]
         
         dateGradientLayer.colors = [
-            UIColor.black.withAlphaComponent(0.0).cgColor,
-            UIColor.black.withAlphaComponent(1.0).cgColor
+            UIColor.ypBlack.withAlphaComponent(0).cgColor,
+            UIColor.ypBlack.withAlphaComponent(0.7).cgColor
+            // при 1 (как в макете) появляются артефакты, а также визуально сливается ячейка с фоном
         ]
         
         dateGradientLayer.startPoint = CGPoint(x: 0.5, y: 0)
