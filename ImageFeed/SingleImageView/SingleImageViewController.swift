@@ -9,39 +9,70 @@ import UIKit
 
 final class SingleImageViewController: UIViewController {
     
-    var image: UIImage? {
-        didSet {
-            guard isViewLoaded, let image else { return }
-            configure(with: image)
-        }
+    // MARK: - Constants
+    
+    private enum Constants {
+        static let minimumZoomScale: CGFloat = 0.1
+        static let maximumZoomScale: CGFloat = 1.25
     }
+    
+    // MARK: - IBOutlets
     
     @IBOutlet private weak var imageView: UIImageView!
     @IBOutlet private weak var scrollView: UIScrollView!
     
+    // MARK: - Public Properties
+    
+    var image: UIImage? {
+        didSet {
+            guard isViewLoaded, let image else {
+                return
+            }
+            configure(with: image)
+        }
+    }
+    
+    // MARK: - Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        scrollView.minimumZoomScale = 0.1
-        scrollView.maximumZoomScale = 1.25
-        scrollView.delegate = self
-        
-        guard let image else { return }
-        configure(with: image)
+        setupScrollView()
+        configureIfNeeded()
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        guard let image else { return }
-        rescaleAndCenterImageInScrollView(image: image)
+        configureIfNeeded()
     }
+    
+    // MARK: - Actions
     
     @IBAction private func didTapShareButton(_ sender: UIButton) {
         guard let image else { return }
-        present(UIActivityViewController(activityItems: [image], applicationActivities: nil), animated: true, completion: nil)
+        present(
+            UIActivityViewController(activityItems: [image], applicationActivities: nil),
+            animated: true,
+            completion: nil
+        )
     }
     
     @IBAction private func didTapBackButton() {
-        dismiss(animated: true, completion: nil)
+        dismiss(animated: true)
+    }
+    
+    // MARK: - Private
+    
+    private func setupScrollView() {
+        scrollView.minimumZoomScale = Constants.minimumZoomScale
+        scrollView.maximumZoomScale = Constants.maximumZoomScale
+        scrollView.delegate = self
+    }
+    
+    private func configureIfNeeded() {
+        guard let image else {
+            return
+        }
+        configure(with: image)
     }
     
     private func rescaleAndCenterImageInScrollView(image: UIImage) {
