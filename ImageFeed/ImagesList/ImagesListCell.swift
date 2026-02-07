@@ -72,7 +72,7 @@ final class ImagesListCell: UITableViewCell {
 
         dateGradientLayer.colors = [
             UIColor.ypBlack.withAlphaComponent(Constants.topColorAlpha).cgColor,
-            UIColor.ypBlack.withAlphaComponent(Constants.bottomColorAlpha).cgColor // alpha=1 can create artifacts and makes the cell blend with background
+            UIColor.ypBlack.withAlphaComponent(Constants.bottomColorAlpha).cgColor
         ]
 
         dateGradientLayer.startPoint = Constants.gradientStartPoint

@@ -39,11 +39,45 @@ final class ProfileViewController: UIViewController {
         avatarImageName: "MockProfilePhoto"
     )
     
-    private let profileImageView = UIImageView()
-    private let nameLabel = UILabel()
-    private let usernameLabel = UILabel()
-    private let bioLabel = UILabel()
-    private let logoutButton = UIButton(type: .system)
+    private let profileImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+
+    private let nameLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: Constants.nameFontSize, weight: .bold)
+        label.textColor = .ypWhite
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    private let usernameLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: Constants.secondaryFontSize, weight: .regular)
+        label.textColor = .ypGray
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    private let bioLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: Constants.secondaryFontSize, weight: .regular)
+        label.textColor = .ypWhite
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    private let logoutButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(.exit, for: .normal)
+        button.tintColor = .ypRed
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
     
     // MARK: - Lifecycle
     
@@ -72,11 +106,6 @@ final class ProfileViewController: UIViewController {
     }
     
     private func setupConstraints() {
-        profileImageView.translatesAutoresizingMaskIntoConstraints = false
-        nameLabel.translatesAutoresizingMaskIntoConstraints = false
-        usernameLabel.translatesAutoresizingMaskIntoConstraints = false
-        bioLabel.translatesAutoresizingMaskIntoConstraints = false
-        logoutButton.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             profileImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: Constants.avatarTopInset),
@@ -114,21 +143,6 @@ final class ProfileViewController: UIViewController {
     
     private func configureUI() {
         view.backgroundColor = .ypBlack
-        
-        profileImageView.contentMode = .scaleAspectFill
-        profileImageView.clipsToBounds = true
-        
-        nameLabel.font = .systemFont(ofSize: Constants.nameFontSize, weight: .bold)
-        nameLabel.textColor = .ypWhite
-        
-        usernameLabel.font = .systemFont(ofSize: Constants.secondaryFontSize, weight: .regular)
-        usernameLabel.textColor = .ypGray
-        
-        bioLabel.font = .systemFont(ofSize: Constants.secondaryFontSize, weight: .regular)
-        bioLabel.textColor = .ypWhite
-        
-        logoutButton.setImage(.exit, for: .normal)
-        logoutButton.tintColor = .ypRed
     }
     
     private func configure(with profile: Profile) {
