@@ -10,10 +10,6 @@ import Foundation
 // MARK: - Models
 struct OAuthTokenResponseBody: Decodable {
     let accessToken: String
-
-    private enum CodingKeys: String, CodingKey {
-        case accessToken = "access_token"
-    }
 }
 
 final class OAuth2Service {
@@ -28,6 +24,14 @@ final class OAuth2Service {
 
     // MARK: - Shared
     static let shared = OAuth2Service()
+    
+    // MARK: - Properties
+    
+    private lazy var decoder: JSONDecoder = {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        return decoder
+    }()
 
     // MARK: - Init
     private init() {}
@@ -46,8 +50,7 @@ final class OAuth2Service {
             switch result {
             case .success(let data):
                 do {
-                    let decoder = JSONDecoder()
-                    let body = try decoder.decode(OAuthTokenResponseBody.self, from: data)
+                    let body = try self.decoder.decode(OAuthTokenResponseBody.self, from: data)
                     completion(.success(body.accessToken))
                 } catch {
                     print("❌ Failed to decode OAuth token:", error)

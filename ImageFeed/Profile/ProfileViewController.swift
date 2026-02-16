@@ -39,7 +39,7 @@ final class ProfileViewController: UIViewController {
         avatarImageName: "MockProfilePhoto"
     )
     
-    private let profileImageView: UIImageView = {
+    private lazy var profileImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
@@ -47,7 +47,7 @@ final class ProfileViewController: UIViewController {
         return imageView
     }()
 
-    private let nameLabel: UILabel = {
+    private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: Constants.nameFontSize, weight: .bold)
         label.textColor = .ypWhite
@@ -55,7 +55,7 @@ final class ProfileViewController: UIViewController {
         return label
     }()
 
-    private let usernameLabel: UILabel = {
+    private lazy var usernameLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: Constants.secondaryFontSize, weight: .regular)
         label.textColor = .ypGray
@@ -63,7 +63,7 @@ final class ProfileViewController: UIViewController {
         return label
     }()
 
-    private let bioLabel: UILabel = {
+    private lazy var bioLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: Constants.secondaryFontSize, weight: .regular)
         label.textColor = .ypWhite
@@ -71,7 +71,7 @@ final class ProfileViewController: UIViewController {
         return label
     }()
 
-    private let logoutButton: UIButton = {
+    private lazy var logoutButton: UIButton = {
         let button = UIButton(type: .system)
         button.setImage(.exit, for: .normal)
         button.tintColor = .ypRed

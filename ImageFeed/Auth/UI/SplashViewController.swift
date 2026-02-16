@@ -17,7 +17,7 @@ final class SplashViewController: UIViewController {
     }
 
     // MARK: - Private Properties
-    private let tokenStorage = OAuth2TokenStorage()
+    private let tokenStorage = OAuth2TokenStorage.shared
     
     // MARK: - Public Properties
     

@@ -22,7 +22,7 @@ final class AuthViewController: UIViewController {
 
     // MARK: - Private Properties
     private let oauth2Service = OAuth2Service.shared
-    private let tokenStorage = OAuth2TokenStorage()
+    private let tokenStorage = OAuth2TokenStorage.shared
 
     // MARK: - Public Properties
     weak var delegate: AuthViewControllerDelegate?

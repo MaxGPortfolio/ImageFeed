@@ -14,8 +14,16 @@ final class OAuth2TokenStorage {
         static let tokenKey = "OAuthToken"
     }
 
+    // MARK: - Shared
+    
+    static let shared = OAuth2TokenStorage()
+    
     // MARK: - Properties
     private let userDefaults = UserDefaults.standard
+    
+    // MARK: - Init
+    
+    private init() {}
 
     // MARK: - Token
     var token: String? {
