@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Kingfisher
 
 final class ProfileViewController: UIViewController {
     
@@ -21,32 +22,21 @@ final class ProfileViewController: UIViewController {
         static let secondaryFontSize: CGFloat = 13
     }
     
-    // MARK: - Models
-    
-    struct Profile {
-        let name: String
-        let username: String
-        let bio: String
-        let avatarImageName: String
-    }
-    
     // MARK: - Private Properties
-  
-    private let profile = Profile(
-        name: "Екатерина Новикова",
-        username: "@ekaterina_nov",
-        bio: "Hello, world!",
-        avatarImageName: "MockProfilePhoto"
-    )
+    
+    private let profileService = ProfileService.shared
+    private var profileImageServiceObserver: NSObjectProtocol?
+    private let profileImageService = ProfileImageService.shared
     
     private lazy var profileImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
+        imageView.kf.indicatorType = .activity
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
-
+    
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: Constants.nameFontSize, weight: .bold)
@@ -54,7 +44,7 @@ final class ProfileViewController: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-
+    
     private lazy var usernameLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: Constants.secondaryFontSize, weight: .regular)
@@ -62,7 +52,7 @@ final class ProfileViewController: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-
+    
     private lazy var bioLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: Constants.secondaryFontSize, weight: .regular)
@@ -70,7 +60,7 @@ final class ProfileViewController: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-
+    
     private lazy var logoutButton: UIButton = {
         let button = UIButton(type: .system)
         button.setImage(.exit, for: .normal)
@@ -83,11 +73,22 @@ final class ProfileViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         setupViews()
         setupConstraints()
         setupActions()
         configureUI()
-        configure(with: profile)
+        
+        profileImageServiceObserver = NotificationCenter.default
+            .addObserver(
+                forName: ProfileImageService.didChangeNotification,
+                object: ProfileImageService.shared,
+                queue: .main
+            ) { [weak self] _ in
+                guard let self = self else { return }
+                self.updateAvatar()
+            }
+        updateAvatar()
     }
     
     override func viewDidLayoutSubviews() {
@@ -95,7 +96,60 @@ final class ProfileViewController: UIViewController {
         updateAvatarCornerRadius()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        updateProfileLabelsIfNeeded()
+    }
+    
+    deinit {
+        if let observer = profileImageServiceObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+    }
+    
     // MARK: - Setup
+    
+    private func updateAvatar() {
+        guard
+            let profileImageURL = profileImageService.avatarURL,
+            let url = URL(string: profileImageURL)
+        else {
+            profileImageView.image = UIImage(named: "userPic")
+            return
+        }
+        
+        print("imageUrl: \(url)")
+        
+        let placeholderImage = UIImage(named: "userPic")
+        
+        profileImageView.kf.indicatorType = .activity
+        profileImageView.kf.setImage(
+            with: url,
+            placeholder: placeholderImage,
+            options: [
+                .scaleFactor(UIScreen.main.scale),
+                .cacheOriginalImage,
+            ]) { result in
+                
+                switch result {
+                    
+                case .success(let value):
+                    print(value.image)
+                    print(value.cacheType)
+                    print(value.source)
+                case .failure(let error):
+                    print(error)
+                }
+            }
+    }
+    
+    private func updateProfileLabelsIfNeeded() {
+        guard let profile = profileService.profile else { return }
+        nameLabel.text = profile.name
+        usernameLabel.text = profile.loginName
+        bioLabel.text = profile.bio
+    }
     
     private func setupViews() {
         view.addSubview(profileImageView)
@@ -133,9 +187,10 @@ final class ProfileViewController: UIViewController {
     }
     
     private func setupActions() {
-        logoutButton.addTarget(self,
-                               action: #selector(didTapLogoutButton),
-                               for: .touchUpInside
+        logoutButton.addTarget(
+            self,
+            action: #selector(didTapLogoutButton),
+            for: .touchUpInside
         )
     }
     
@@ -143,13 +198,6 @@ final class ProfileViewController: UIViewController {
     
     private func configureUI() {
         view.backgroundColor = .ypBlack
-    }
-    
-    private func configure(with profile: Profile) {
-        nameLabel.text = profile.name
-        usernameLabel.text = profile.username
-        bioLabel.text = profile.bio
-        profileImageView.image = UIImage(named: profile.avatarImageName)
     }
     
     // MARK: - Private Helpers

@@ -35,18 +35,48 @@ extension URLSession {
                     completeOnTheMainThread(.success(data))
                 } else {
                     let body = String(data: data, encoding: .utf8)
-                    print("❌ HTTP \(statusCode). Response body:", body ?? "nil")
+                    print("[URLSession.data]: NetworkError.httpStatusCode(\(statusCode)) request=\(request.url?.absoluteString ?? "nil") body=\(body ?? "nil")")
                     completeOnTheMainThread(.failure(NetworkError.httpStatusCode(statusCode)))
                 }
             } else if let error = error {
                 completeOnTheMainThread(.failure(NetworkError.urlRequestError(error)))
-                print("❌ URLRequest error:", error)
+                print("[URLSession.data]: NetworkError.urlRequestError(\(error.localizedDescription)) request=\(request.url?.absoluteString ?? "nil")")
             } else {
-                print("❌ URLSession error: missing data/response and no underlying error")
+                print("[URLSession.data]: NetworkError.urlSessionError request=\(request.url?.absoluteString ?? "nil")")
                 completeOnTheMainThread(.failure(NetworkError.urlSessionError))
             }
         })
         
+        return task
+    }
+}
+
+extension URLSession {
+    func objectTask<T: Decodable>(
+        for request: URLRequest,
+        completion: @escaping (Result<T, Error>) -> Void
+    ) -> URLSessionTask {
+        
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        
+        let task = data(for: request) { result in
+            
+            switch result {
+                
+            case .success(let data):
+                do {
+                    let decodedObject = try decoder.decode(T.self, from: data)
+                    completion(.success(decodedObject))
+                } catch {
+                    let body = String(data: data, encoding: .utf8) ?? "nil"
+                    print("[URLSession.objectTask]: NetworkError.decodingError(\(error.localizedDescription)) type=\(T.self) request=\(request.url?.absoluteString ?? "nil") body=\(body)")
+                    completion(.failure(NetworkError.decodingError(error)))
+                }
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }
         return task
     }
 }
