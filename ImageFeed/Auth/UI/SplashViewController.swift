@@ -5,6 +5,9 @@
 //  Created by Максим on 06.02.2026.
 //
 
+import UIKit
+
+// MARK: - Navigation Controller
 
 final class AuthNavigationController: UINavigationController {
     override var childForStatusBarStyle: UIViewController? {
@@ -12,19 +15,23 @@ final class AuthNavigationController: UINavigationController {
     }
 }
 
-import UIKit
-
 final class SplashViewController: UIViewController {
     
+    // MARK: - Constants
+    
+    private enum Constants {
+        static let splashLogoImageName = "splash_screen_logo"
+    }
     
     // MARK: - Private Properties
-    private let storage = OAuth2TokenStorage.shared
+    
+    private let tokenStorage = OAuth2TokenStorage.shared
     private let profileService = ProfileService.shared
     private let profileImageService = ProfileImageService.shared
     
     private lazy var logoImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(named: "splash_screen_logo")
+        imageView.image = UIImage(named: Constants.splashLogoImageName)
         imageView.contentMode = .center
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
@@ -32,23 +39,21 @@ final class SplashViewController: UIViewController {
     
     // MARK: - Public Properties
     
-    override var preferredStatusBarStyle: UIStatusBarStyle {
-        .lightContent
-    }
+    override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
     
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        setupUI()
+        setupViews()
         setupConstraints()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        guard let token = storage.token, !token.isEmpty else {
+        guard let token = tokenStorage.token, !token.isEmpty else {
             if presentedViewController == nil {
                 presentAuthViewController()
             }
@@ -61,7 +66,6 @@ final class SplashViewController: UIViewController {
         super.viewWillAppear(animated)
         setNeedsStatusBarAppearanceUpdate()
     }
-    
     
     // MARK: - Private
     
@@ -91,10 +95,11 @@ final class SplashViewController: UIViewController {
 }
 
 // MARK: - AuthViewControllerDelegate
+
 extension SplashViewController: AuthViewControllerDelegate {
     
     func didAuthenticate(_ vc: AuthViewController) {
-        guard let token = storage.token, !token.isEmpty else { return }
+        guard let token = tokenStorage.token, !token.isEmpty else { return }
         fetchProfile(token: token)
     }
     
@@ -107,29 +112,28 @@ extension SplashViewController: AuthViewControllerDelegate {
                 return
             }
             
+            defer { UIBlockingProgressHUD.dismiss() }
+            
             switch result {
             case .success(let profile):
                 let username = profile.username
-                self.profileImageService.fetchProfileImageURL(username: username) { _ in }
-                self.switchToTabBarController()
-                UIBlockingProgressHUD.dismiss()
+                profileImageService.fetchProfileImageURL(username: username) { _ in }
+                switchToTabBarController()
             case .failure(let error):
                 print("❌ Profile error:", error)
                 let isUnauthorized = String(describing: error).contains("401")
                 
                 if isUnauthorized {
-                    self.storage.token = nil
-                    UIBlockingProgressHUD.dismiss()
-                    if self.presentedViewController == nil {
-                        self.presentAuthViewController()
+                    tokenStorage.token = nil
+                    if presentedViewController == nil {
+                        presentAuthViewController()
                     } else {
-                        self.dismiss(animated: true) { [weak self] in
+                        dismiss(animated: true) { [weak self] in
                             self?.presentAuthViewController()
                         }
                     }
                 } else {
-                    self.switchToTabBarController()
-                    UIBlockingProgressHUD.dismiss()
+                    switchToTabBarController()
                 }
             }
         }
@@ -138,7 +142,7 @@ extension SplashViewController: AuthViewControllerDelegate {
 
 private extension SplashViewController {
     
-    func setupUI() {
+    func setupViews() {
         view.backgroundColor = .ypBlack
         view.addSubview(logoImageView)
     }

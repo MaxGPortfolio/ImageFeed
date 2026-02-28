@@ -21,6 +21,9 @@ final class SingleImageViewController: UIViewController {
         static let shareButtonSize: CGFloat = 50
         static let shareButtonBottomConstraintHasHomeIndicator: CGFloat = 17
         static let shareButtonBottomConstraintDoesNotHaveHomeIndicator: CGFloat = 30
+        
+        static let backButtonImageName = "Backward_White"
+        static let shareButtonImageName = "Sharing"
     }
     
     private var shareButtonBottomConstraint: NSLayoutConstraint?
@@ -57,26 +60,25 @@ final class SingleImageViewController: UIViewController {
     private lazy var backButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(UIImage(named: "Backward_White"), for: .normal)
+        button.setImage(UIImage(named: Constants.backButtonImageName), for: .normal)
         return button
     }()
     
     private lazy var shareButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(UIImage(named: "Sharing"), for: .normal)
+        button.setImage(UIImage(named: Constants.shareButtonImageName), for: .normal)
         return button
     }()
     
     private var hasConfiguredImage = false
     private var lastScrollViewBounds: CGRect = .zero
     
-    
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupUI()
+        setupViews()
         setupActions()
         setupConstraints()
         setupScrollView()
@@ -186,7 +188,8 @@ extension SingleImageViewController: UIScrollViewDelegate {
 
 private extension SingleImageViewController {
     
-    func setupUI() {
+    // MARK: - Setup
+    func setupViews() {
         view.backgroundColor = .ypBlack
         view.addSubview(scrollView)
         scrollView.addSubview(imageView)
@@ -233,18 +236,18 @@ private extension SingleImageViewController {
         )
     }
     
+    // MARK: - Actions
     @objc
-    func didTapBackButton() {
+    private func didTapBackButton() {
         dismiss(animated: true)
     }
     
     @objc
-    func didTapShareButton() {
+    private func didTapShareButton() {
         guard let image else { return }
         present(
             UIActivityViewController(activityItems: [image], applicationActivities: nil),
-            animated: true,
-            completion: nil
+            animated: true
         )
     }
 }

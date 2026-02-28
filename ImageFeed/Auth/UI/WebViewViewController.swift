@@ -8,6 +8,7 @@
 import UIKit
 import WebKit
 
+// MARK: - Constants
 private enum WebViewConstants {
     static let unsplashAuthorizeURLString = "https://unsplash.com/oauth/authorize"
 
@@ -15,11 +16,13 @@ private enum WebViewConstants {
     static let progressHideThreshold: Double = 0.001
 }
 
+// MARK: - Delegate
 protocol WebViewViewControllerDelegate: AnyObject {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String)
     func webViewViewControllerDidCancel(_ vc: WebViewViewController)
 }
 
+// MARK: - WebViewViewController
 final class WebViewViewController: UIViewController {
 
     // MARK: - Private Properties
@@ -57,7 +60,7 @@ final class WebViewViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupUI()
+        setupViews()
         setupConstraints()
         webView.navigationDelegate = self
         estimatedProgressObservation = webView.observe(
@@ -65,7 +68,7 @@ final class WebViewViewController: UIViewController {
             options: [.new]
         ) { [weak self] _, _ in
             guard let self else { return }
-            self.updateProgress()
+            updateProgress()
         }
         loadAuthView()
     }
@@ -77,6 +80,7 @@ final class WebViewViewController: UIViewController {
     }
 }
 
+// MARK: - Private Helpers
 private extension WebViewViewController {
     func loadAuthView() {
         guard var urlComponents = URLComponents(string: WebViewConstants.unsplashAuthorizeURLString) else {
@@ -89,7 +93,7 @@ private extension WebViewViewController {
             URLQueryItem(name: "client_id", value: Constants.accessKey),
             URLQueryItem(name: "redirect_uri", value: Constants.redirectURL),
             URLQueryItem(name: "response_type", value: "code"),
-            URLQueryItem(name: "scope", value: Constants.accessScope)
+            URLQueryItem(name: "scope", value: Constants.accessScope),
         ]
 
         guard let url = urlComponents.url else {
@@ -103,6 +107,7 @@ private extension WebViewViewController {
     }
 }
 
+// MARK: - WKNavigationDelegate
 extension WebViewViewController: WKNavigationDelegate {
     
     func webView(
@@ -133,8 +138,9 @@ extension WebViewViewController: WKNavigationDelegate {
     }
 }
 
+// MARK: - Setup
 private extension WebViewViewController {
-    func setupUI() {
+    func setupViews() {
         view.backgroundColor = .ypWhite
         view.addSubview(progressView)
         view.addSubview(webView)

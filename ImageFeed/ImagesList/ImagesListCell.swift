@@ -31,6 +31,8 @@ final class ImagesListCell: UITableViewCell {
         static let likeOffImageName = "like_button_off"
     }
     
+    // MARK: - Reuse Identifier
+
     static let reuseIdentifier = "ImagesListCell"
 
     // MARK: - Private Properties
@@ -56,9 +58,9 @@ final class ImagesListCell: UITableViewCell {
     }()
     
     private lazy var likeButton: UIButton = {
-        let likebutton = UIButton()
-        likebutton.translatesAutoresizingMaskIntoConstraints = false
-        return likebutton
+        let button = UIButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
     }()
     
     private lazy var dateBackgroundView: UIView = {
@@ -82,6 +84,8 @@ final class ImagesListCell: UITableViewCell {
         likeButton.setImage(UIImage(named: imageName), for: .normal)
     }
     
+    // MARK: - Lifecycle
+
     override init (style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         
@@ -102,7 +106,9 @@ final class ImagesListCell: UITableViewCell {
         super.prepareForReuse()
 
         cellImage.image = nil
+
         dateLabel.text = nil
+
         setIsLiked(false)
     }
     
@@ -110,7 +116,7 @@ final class ImagesListCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
-    // MARK: - Private
+    // MARK: - Setup
 
     private func setupDateGradient() {
         dateGradientLayer.cornerRadius = Constants.gradientCornerRadius

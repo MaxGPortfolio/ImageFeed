@@ -9,12 +9,25 @@ import UIKit
 
 final class TabBarController: UITabBarController {
     
+    // MARK: - Constants
+    
+    private enum Constants {
+        static let feedTabImage = "tab_editorial_no_active"
+        static let feedTabSelectedImage = "tab_editorial_active"
+        static let profileTabImage = "tab_profile_no_active"
+        static let profileTabSelectedImage = "tab_profile_active"
+    }
+    
+    // MARK: - Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         setupViewControllers()
         setupAppearance()
     }
+    
+    // MARK: - Private
     
     private func setupViewControllers() {
         
@@ -23,14 +36,14 @@ final class TabBarController: UITabBarController {
         
         feedNav.tabBarItem = UITabBarItem(
             title: "",
-            image: UIImage(named: "tab_editorial_no_active"),
-            selectedImage: UIImage(named: "tab_editorial_active")
+            image: UIImage(named: Constants.feedTabImage),
+            selectedImage: UIImage(named: Constants.feedTabSelectedImage)
         )
         
         profileNav.tabBarItem = UITabBarItem(
             title: "",
-            image: UIImage(named: "tab_profile_no_active"),
-            selectedImage: UIImage(named: "tab_profile_active")
+            image: UIImage(named: Constants.profileTabImage),
+            selectedImage: UIImage(named: Constants.profileTabSelectedImage)
         )
         
         viewControllers = [feedNav, profileNav]
@@ -49,10 +62,12 @@ final class TabBarController: UITabBarController {
         appearance.backgroundEffect = nil
         appearance.backgroundColor = .ypBlack
         
-        appearance.stackedLayoutAppearance.selected.iconColor = .white
-        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [.foregroundColor: UIColor.white]
-        appearance.stackedLayoutAppearance.normal.iconColor = .ypGray
-        appearance.stackedLayoutAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.ypGray]
+        let stacked = appearance.stackedLayoutAppearance
+        
+        stacked.selected.iconColor = .white
+        stacked.selected.titleTextAttributes = [.foregroundColor: UIColor.white]
+        stacked.normal.iconColor = .ypGray
+        stacked.normal.titleTextAttributes = [.foregroundColor: UIColor.ypGray]
 
         if #available(iOS 15.0, *) {
             tabBar.scrollEdgeAppearance = appearance
@@ -61,5 +76,3 @@ final class TabBarController: UITabBarController {
         tabBar.standardAppearance = appearance
     }
 }
-
-

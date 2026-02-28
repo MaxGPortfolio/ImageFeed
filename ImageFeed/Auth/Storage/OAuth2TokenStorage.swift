@@ -23,17 +23,21 @@ final class OAuth2TokenStorage {
     
     private init() {}
     
+    // MARK: - Properties
+
+    private let keychain = KeychainWrapper.standard
+    
     // MARK: - Token
     
     var token: String? {
         get {
-            KeychainWrapper.standard.string(forKey: Constants.tokenKey)
+            return keychain.string(forKey: Constants.tokenKey)
         }
         set {
             if let newValue {
-                KeychainWrapper.standard.set(newValue, forKey: Constants.tokenKey)
+                keychain.set(newValue, forKey: Constants.tokenKey)
             } else {
-                KeychainWrapper.standard.removeObject(forKey: Constants.tokenKey)
+                keychain.removeObject(forKey: Constants.tokenKey)
             }
         }
     }

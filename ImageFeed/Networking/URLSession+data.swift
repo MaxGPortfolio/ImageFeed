@@ -16,7 +16,7 @@ enum NetworkError: Error {
     case decodingError(Error)
 }
 
-// MARK: - URLSession
+// MARK: - Data Task
 
 extension URLSession {
     func data(
@@ -49,9 +49,10 @@ extension URLSession {
         
         return task
     }
-}
 
-extension URLSession {
+    
+    // MARK: - Object Task
+    
     func objectTask<T: Decodable>(
         for request: URLRequest,
         completion: @escaping (Result<T, Error>) -> Void

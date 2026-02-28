@@ -6,6 +6,8 @@
 //
 import Foundation
 
+// MARK: - Models
+
 struct UserResult: Codable {
     let profileImage: ProfileImage
     
@@ -16,12 +18,14 @@ struct UserResult: Codable {
 
 final class ProfileImageService {
     
-    // MARK: - OAuth-specific constants
+    // MARK: - Constants
     
-    private enum ProfileImageServiceConstants {
+    private enum Constants {
         static let usersURLString = "https://api.unsplash.com/users/"
         static let httpMethodGet = "GET"
     }
+    
+    // MARK: - Errors
     
     private enum ProfileImageServiceError: Error {
         case invalidRequest
@@ -38,14 +42,15 @@ final class ProfileImageService {
     private var lastUsername: String?
     private(set) var avatarURL: String?
     private let tokenStorage = OAuth2TokenStorage.shared
-    static let didChangeNotification = Notification.Name(rawValue: "ProfileImageProviderDidChange")
-    static let avatarURLKey = "URL"
     
     // MARK: - Init
     
     private init() {}
     
     // MARK: - Public
+
+    static let didChangeNotification = Notification.Name("ProfileImageProviderDidChange")
+    static let avatarURLKey = "URL"
     
     func fetchProfileImageURL(username: String, completion: @escaping (Result<String, Error>) -> Void) {
         assert(Thread.isMainThread)
@@ -59,16 +64,13 @@ final class ProfileImageService {
         task?.cancel()
         lastUsername = username
         
-        guard
-            let token = tokenStorage.token
-        else {
+        guard let token = tokenStorage.token else {
             print("[ProfileImageService.fetchProfileImageURL]: ProfileImageServiceError.invalidRequest token=nil username=\(username)")
             completion(.failure(ProfileImageServiceError.invalidRequest))
             return
         }
         
-        guard
-            let request = makeProfileImageURLRequest(username: username, token: token) else {
+        guard let request = makeProfileImageURLRequest(username: username, token: token) else {
             print("[ProfileImageService.fetchProfileImageURL]: ProfileImageServiceError.invalidRequest request=nil username=\(username)")
             completion(.failure(ProfileImageServiceError.invalidRequest))
             return
@@ -94,9 +96,9 @@ final class ProfileImageService {
                 let urlString = userResult.profileImage.large
                 self.avatarURL = urlString
                 NotificationCenter.default.post(
-                    name: ProfileImageService.didChangeNotification,
+                    name: Self.didChangeNotification,
                     object: self,
-                    userInfo: [ProfileImageService.avatarURLKey: urlString]
+                    userInfo: [Self.avatarURLKey: urlString]
                 )
                 completion(.success(urlString))
             case .failure(let error):
@@ -108,14 +110,16 @@ final class ProfileImageService {
         requestTask?.resume()
     }
     
+    // MARK: - Private
+    
     private func makeProfileImageURLRequest(username: String, token: String) -> URLRequest? {
-        guard let url = URL(string: "\(ProfileImageServiceConstants.usersURLString)\(username)") else {
+        guard let url = URL(string: "\(Constants.usersURLString)\(username)") else {
             print("❌ Invalid avatar URL")
             return nil
         }
         
         var request = URLRequest(url: url)
-        request.httpMethod = ProfileImageServiceConstants.httpMethodGet
+        request.httpMethod = Constants.httpMethodGet
         
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         

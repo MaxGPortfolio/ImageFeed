@@ -21,7 +21,7 @@ final class AuthViewController: UIViewController {
         static let navigationTintColorName = "ypBlack"
     }
     
-    private enum UIConstants {
+    private enum LayoutConstants {
         static let loginFontSize: CGFloat = 17
         static let loginCornerRadius: CGFloat = 16
         static let authLogoImageViewSize: CGFloat = 60
@@ -47,11 +47,11 @@ final class AuthViewController: UIViewController {
         let button = UIButton(type: .system)
         button.setTitle("Войти", for: .normal)
         button.setTitleColor(UIColor(named: "ypBlack") ?? .black, for: .normal)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: UIConstants.loginFontSize, weight: .bold)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: LayoutConstants.loginFontSize, weight: .bold)
         button.backgroundColor = .ypWhite
         button.layer.masksToBounds = true
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.layer.cornerRadius = UIConstants.loginCornerRadius
+        button.layer.cornerRadius = LayoutConstants.loginCornerRadius
         return button
     }()
     
@@ -67,7 +67,7 @@ final class AuthViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         configureBackButton()
-        setupUI()
+        setupViews()
         setupConstraints()
         setupActions()
         
@@ -120,12 +120,12 @@ extension AuthViewController: WebViewViewControllerDelegate {
             
             switch result {
             case .success(let token):
-                self.tokenStorage.token = token
-                print("✅ saved token:", self.tokenStorage.token ?? "nil")
+                tokenStorage.token = token
+                print("✅ saved token:", tokenStorage.token ?? "nil")
                 delegate?.didAuthenticate(self)
             case .failure(let error):
                 print("❌ Failed to fetch token:", error)
-                self.showAuthErrorAlert()
+                showAuthErrorAlert()
             }
         }
     }
@@ -135,17 +135,19 @@ extension AuthViewController: WebViewViewControllerDelegate {
     }
 }
 
+// MARK: - Networking
+
 extension AuthViewController {
     private func fetchAuthToken(code: String, completion: @escaping (Result<String, Error>) -> Void) {
-        oauth2Service.fetchAuthToken(code) { result in
-            completion(result)
-        }
+        oauth2Service.fetchAuthToken(code, completion: completion)
     }
 }
 
+// MARK: - Setup
+
 private extension AuthViewController {
     
-    func setupUI() {
+    func setupViews() {
         view.backgroundColor = .ypBlack
         view.addSubview(authLogoImageView)
         view.addSubview(loginButton)
@@ -155,17 +157,17 @@ private extension AuthViewController {
         NSLayoutConstraint.activate([
             authLogoImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             authLogoImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            authLogoImageView.heightAnchor.constraint(equalToConstant: UIConstants.authLogoImageViewSize),
-            authLogoImageView.widthAnchor.constraint(equalToConstant: UIConstants.authLogoImageViewSize),
+            authLogoImageView.heightAnchor.constraint(equalToConstant: LayoutConstants.authLogoImageViewSize),
+            authLogoImageView.widthAnchor.constraint(equalToConstant: LayoutConstants.authLogoImageViewSize),
             
-            loginButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: UIConstants.horizontalInsets),
-            loginButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -UIConstants.horizontalInsets),
-            loginButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -UIConstants.verticalInsets),
-            loginButton.heightAnchor.constraint(equalToConstant: UIConstants.loginButtonHeight)
+            loginButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: LayoutConstants.horizontalInsets),
+            loginButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -LayoutConstants.horizontalInsets),
+            loginButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -LayoutConstants.verticalInsets),
+            loginButton.heightAnchor.constraint(equalToConstant: LayoutConstants.loginButtonHeight)
         ])
     }
     
-    private func setupActions() {
+    func setupActions() {
         loginButton.addTarget(
             self,
             action: #selector(didTapLoginButton),
@@ -173,8 +175,9 @@ private extension AuthViewController {
         )
     }
     
+    // MARK: - Actions
     @objc
-    func didTapLoginButton() {
+    private func didTapLoginButton() {
         let webVC = WebViewViewController()
         webVC.delegate = self
         

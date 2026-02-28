@@ -7,6 +7,8 @@
 
 import Foundation
 
+// MARK: - Models
+
 struct ProfileResult: Codable {
     let username: String
     let firstName: String?
@@ -33,12 +35,14 @@ struct Profile {
 
 final class ProfileService {
     
-    // MARK: - OAuth-specific constants
+    // MARK: - Constants
     
-    private enum ProfileServiceConstants {
+    private enum Constants {
         static let profileURLString = "https://api.unsplash.com/me"
         static let httpMethodGet = "GET"
     }
+    
+    // MARK: - Errors
     
     private enum ProfileServiceError: Error {
         case invalidRequest
@@ -73,9 +77,7 @@ final class ProfileService {
         task?.cancel()
         lastToken = token
         
-        guard
-            let request = makeProfileRequest(token: token)
-        else {
+        guard let request = makeProfileRequest(token: token) else {
             print("[ProfileService.fetchProfile]: ProfileServiceError.invalidRequest request=nil token=\(token)")
             completion(.failure(ProfileServiceError.invalidRequest))
             return
@@ -110,21 +112,16 @@ final class ProfileService {
         requestTask?.resume()
     }
     
-    
+    // MARK: - Private
     
     private func makeProfileRequest(token: String) -> URLRequest? {
-        
-        guard let url = URL(string: ProfileServiceConstants.profileURLString) else {
+        guard let url = URL(string: Constants.profileURLString) else {
             print("❌ Invalid profile URL")
             return nil
         }
-        
         var request = URLRequest(url: url)
-        request.httpMethod = ProfileServiceConstants.httpMethodGet
-            
+        request.httpMethod = Constants.httpMethodGet
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        
-        
         return request
     }
 }

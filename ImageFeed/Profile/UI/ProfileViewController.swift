@@ -20,6 +20,8 @@ final class ProfileViewController: UIViewController {
         static let logoutButtonSize: CGFloat = 44
         static let nameFontSize: CGFloat = 23
         static let secondaryFontSize: CGFloat = 13
+        static let placeholderImageName = "userPic"
+        static let logoutImageName = "Exit"
     }
     
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
@@ -67,7 +69,7 @@ final class ProfileViewController: UIViewController {
     
     private lazy var logoutButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(UIImage(named: "Exit")?.withRenderingMode(.alwaysOriginal), for: .normal)
+        button.setImage(UIImage(named: Constants.logoutImageName)?.withRenderingMode(.alwaysOriginal), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -86,11 +88,10 @@ final class ProfileViewController: UIViewController {
         profileImageServiceObserver = NotificationCenter.default
             .addObserver(
                 forName: ProfileImageService.didChangeNotification,
-                object: ProfileImageService.shared,
+                object: profileImageService,
                 queue: .main
             ) { [weak self] _ in
-                guard let self = self else { return }
-                self.updateAvatar()
+                self?.updateAvatar()
             }
         updateAvatar()
     }
@@ -118,15 +119,14 @@ final class ProfileViewController: UIViewController {
             let profileImageURL = profileImageService.avatarURL,
             let url = URL(string: profileImageURL)
         else {
-            profileImageView.image = UIImage(named: "userPic")
+            profileImageView.image = UIImage(named: Constants.placeholderImageName)
             return
         }
         
         print("imageUrl: \(url)")
         
-        let placeholderImage = UIImage(named: "userPic")
+        let placeholderImage = UIImage(named: Constants.placeholderImageName)
         
-        profileImageView.kf.indicatorType = .activity
         profileImageView.kf.setImage(
             with: url,
             placeholder: placeholderImage,
@@ -163,7 +163,6 @@ final class ProfileViewController: UIViewController {
     }
     
     private func setupConstraints() {
-        
         NSLayoutConstraint.activate([
             profileImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: Constants.avatarTopInset),
             profileImageView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: Constants.horizontalInset),
@@ -185,7 +184,7 @@ final class ProfileViewController: UIViewController {
             logoutButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -Constants.horizontalInset),
             logoutButton.centerYAnchor.constraint(equalTo: profileImageView.centerYAnchor),
             logoutButton.widthAnchor.constraint(equalToConstant: Constants.logoutButtonSize),
-            logoutButton.heightAnchor.constraint(equalToConstant: Constants.logoutButtonSize)
+            logoutButton.heightAnchor.constraint(equalToConstant: Constants.logoutButtonSize),
         ])
     }
     

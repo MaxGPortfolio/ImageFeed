@@ -4,8 +4,8 @@
 //
 //  Created by Максим on 05.02.2026.
 //
-import Foundation
 
+import Foundation
 
 // MARK: - Models
 
@@ -23,6 +23,8 @@ final class OAuth2Service {
         static let grantTypeAuthorizationCode = "authorization_code"
     }
     
+    // MARK: - Errors
+    
     private enum OAuth2ServiceError: Error {
         case invalidRequest
     }
@@ -33,7 +35,7 @@ final class OAuth2Service {
     
     // MARK: - Properties
     
-    private var urlSession = URLSession.shared
+    private let urlSession = URLSession.shared
     private var task: URLSessionTask?
     private var lastCode: String?
     
@@ -54,12 +56,10 @@ final class OAuth2Service {
         task?.cancel()
         lastCode = code
         
-        guard
-            let request = makeOAuthTokenRequest(code: code)
-        else {
+        guard let request = makeOAuthTokenRequest(code: code) else {
             print("[OAuth2Service.fetchAuthToken]: OAuth2ServiceError.invalidRequest request=nil code=\(code)")
-            self.task = nil
-            self.lastCode = nil
+            task = nil
+            lastCode = nil
             completion(.failure(OAuth2ServiceError.invalidRequest))
             return
         }
@@ -99,17 +99,20 @@ final class OAuth2Service {
             print("❌ Failed to create URLComponents for token request")
             return nil
         }
+        
         urlComponents.queryItems = [
             URLQueryItem(name: "client_id", value: Constants.accessKey),
             URLQueryItem(name: "client_secret", value: Constants.secretKey),
             URLQueryItem(name: "redirect_uri", value: Constants.redirectURL),
             URLQueryItem(name: "code", value: code),
-            URLQueryItem(name: "grant_type", value: OAuthConstants.grantTypeAuthorizationCode)
+            URLQueryItem(name: "grant_type", value: OAuthConstants.grantTypeAuthorizationCode),
         ]
+        
         guard let authTokenUrl = urlComponents.url else {
             print("❌ Failed to build token request URL")
             return nil
         }
+        
         var request = URLRequest(url: authTokenUrl)
         request.httpMethod = OAuthConstants.httpMethodPost
         return request

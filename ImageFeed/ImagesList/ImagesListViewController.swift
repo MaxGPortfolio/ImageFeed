@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  ImagesListViewController.swift
 //  ImageFeed
 //
 //  Created by Максим on 26.12.2025.
@@ -9,10 +9,31 @@ import UIKit
 
 final class ImagesListViewController: UIViewController {
     
-    // MARK: - Private Properties
-    private let photoNames: [String] = Array(0..<20).map{ "\($0)" }
+    // MARK: - Constants
+    private enum Constants {
+        static let verticalContentInset: CGFloat = 12
+        static let imageInsets = UIEdgeInsets(top: 4, left: 16, bottom: 4, right: 16)
+    }
     
+    // MARK: - Private Properties
+    private let photoNames: [String] = Array(0..<20).map { String($0) }
+    
+    // MARK: - Public Properties
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
+    
+    // MARK: - Lifecycle
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        setupUI()
+        setupConstraints()
+        
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(ImagesListCell.self, forCellReuseIdentifier: ImagesListCell.reuseIdentifier)
+        
+        tableView.contentInset = UIEdgeInsets(top: Constants.verticalContentInset, left: 0, bottom: Constants.verticalContentInset, right: 0)
+    }
     
     private lazy var dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -28,22 +49,9 @@ final class ImagesListViewController: UIViewController {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
     }()
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        setupUI()
-        setupConstraints()
-        
-        tableView.dataSource = self
-        tableView.delegate = self
-        tableView.register(ImagesListCell.self, forCellReuseIdentifier: ImagesListCell.reuseIdentifier)
-        
-        let verticalInset: CGFloat = 12
-        tableView.contentInset = UIEdgeInsets(top: verticalInset, left: 0, bottom: verticalInset, right: 0)
-    }
 }
 
+// MARK: - UITableViewDelegate
 extension ImagesListViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -51,11 +59,10 @@ extension ImagesListViewController: UITableViewDelegate {
             return 0
         }
         
-        let imageInsets = UIEdgeInsets(top: 4, left: 16, bottom: 4, right: 16)
-        let imageViewWidth = tableView.bounds.width - imageInsets.left - imageInsets.right
+        let imageViewWidth = tableView.bounds.width - Constants.imageInsets.left - Constants.imageInsets.right
         let imageWidth = image.size.width
         let scale = imageViewWidth / imageWidth
-        let cellHeight = image.size.height * scale + imageInsets.top + imageInsets.bottom
+        let cellHeight = image.size.height * scale + Constants.imageInsets.top + Constants.imageInsets.bottom
         
         return cellHeight
     }
@@ -76,9 +83,10 @@ extension ImagesListViewController: UITableViewDelegate {
     }
 }
 
+// MARK: - UITableViewDataSource
 extension ImagesListViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return photoNames.count
+        photoNames.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -95,6 +103,7 @@ extension ImagesListViewController: UITableViewDataSource {
 }
 
 private extension ImagesListViewController {
+    // MARK: - Cell Configuration
     func configureCell(for cell: ImagesListCell, at indexPath: IndexPath) {
         guard let image = UIImage(named: photoNames[indexPath.row]) else {
             return
@@ -106,9 +115,8 @@ private extension ImagesListViewController {
         let isLiked = indexPath.row % 2 == 0
         cell.setIsLiked(isLiked)
     }
-}
-
-private extension ImagesListViewController {
+    
+    // MARK: - Setup
     func setupUI() {
         view.backgroundColor = .ypBlack
         view.addSubview(tableView)
