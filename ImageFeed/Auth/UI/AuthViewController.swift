@@ -13,7 +13,7 @@ protocol AuthViewControllerDelegate: AnyObject {
 }
 
 final class AuthViewController: UIViewController {
-
+    
     // MARK: - Constants
     
     private enum Constants {
@@ -29,7 +29,7 @@ final class AuthViewController: UIViewController {
         static let verticalInsets: CGFloat = 90
         static let loginButtonHeight: CGFloat = 48
     }
-
+    
     // MARK: - Private Properties
     
     private let oauth2Service = OAuth2Service.shared
@@ -61,7 +61,7 @@ final class AuthViewController: UIViewController {
     override var preferredStatusBarStyle: UIStatusBarStyle {
         .lightContent
     }
-
+    
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
@@ -78,7 +78,7 @@ final class AuthViewController: UIViewController {
         super.viewWillAppear(animated)
         setNeedsStatusBarAppearanceUpdate()
     }
-
+    
     // MARK: - Private
     
     private func configureBackButton() {
@@ -87,7 +87,7 @@ final class AuthViewController: UIViewController {
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         navigationController?.navigationBar.tintColor = UIColor(named: Constants.navigationTintColorName)
     }
-
+    
     private func closeWebView(_ viewController: UIViewController) {
         if let navigationController = viewController.navigationController {
             navigationController.popViewController(animated: true)
@@ -129,7 +129,7 @@ extension AuthViewController: WebViewViewControllerDelegate {
             }
         }
     }
-
+    
     func webViewViewControllerDidCancel(_ vc: WebViewViewController) {
         closeWebView(vc)
     }
@@ -162,7 +162,7 @@ private extension AuthViewController {
             loginButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -UIConstants.horizontalInsets),
             loginButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -UIConstants.verticalInsets),
             loginButton.heightAnchor.constraint(equalToConstant: UIConstants.loginButtonHeight)
-     ])
+        ])
     }
     
     private func setupActions() {
@@ -180,7 +180,4 @@ private extension AuthViewController {
         
         navigationController?.pushViewController(webVC, animated: true)
     }
-    
-    
-    
 }

@@ -85,36 +85,43 @@ final class SplashViewController: UIViewController {
 extension SplashViewController: AuthViewControllerDelegate {
     
     func didAuthenticate(_ vc: AuthViewController) {
-        dismiss(animated: true) { [weak self] in
-            guard let self else { return }
-            guard let token = self.storage.token else { return }
-            self.fetchProfile(token: token)
-        }
+        guard let token = storage.token, !token.isEmpty else { return }
+        fetchProfile(token: token)
     }
     
     private func fetchProfile(token: String) {
         UIBlockingProgressHUD.show()
         profileService.fetchProfile(token) { [weak self] result in
-            UIBlockingProgressHUD.dismiss()
             
-            guard let self else { return }
+            guard let self else {
+                UIBlockingProgressHUD.dismiss()
+                return
+            }
             
             switch result {
             case .success(let profile):
                 let username = profile.username
-                profileImageService.fetchProfileImageURL(username: username) { _ in }
-                switchToTabBarController()
+                self.profileImageService.fetchProfileImageURL(username: username) { _ in }
+                self.switchToTabBarController()
+                UIBlockingProgressHUD.dismiss()
             case .failure(let error):
-                self.storage.token = nil
-
-                 if self.presentedViewController == nil {
-                     self.presentAuthViewController()
-                 } else {
-                     self.dismiss(animated: true) { [weak self] in
-                         self?.presentAuthViewController()
-                     }
-                 }
                 print("❌ Profile error:", error)
+                let isUnauthorized = String(describing: error).contains("401")
+                
+                if isUnauthorized {
+                    self.storage.token = nil
+                    UIBlockingProgressHUD.dismiss()
+                    if self.presentedViewController == nil {
+                        self.presentAuthViewController()
+                    } else {
+                        self.dismiss(animated: true) { [weak self] in
+                            self?.presentAuthViewController()
+                        }
+                    }
+                } else {
+                    self.switchToTabBarController()
+                    UIBlockingProgressHUD.dismiss()
+                }
             }
         }
     }

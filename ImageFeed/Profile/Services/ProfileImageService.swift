@@ -10,7 +10,7 @@ struct UserResult: Codable {
     let profileImage: ProfileImage
     
     struct ProfileImage: Codable {
-        let small: String
+        let large: String
     }
 }
 
@@ -91,7 +91,7 @@ final class ProfileImageService {
             
             switch result {
             case .success(let userResult):
-                let urlString = userResult.profileImage.small
+                let urlString = userResult.profileImage.large
                 self.avatarURL = urlString
                 NotificationCenter.default.post(
                     name: ProfileImageService.didChangeNotification,

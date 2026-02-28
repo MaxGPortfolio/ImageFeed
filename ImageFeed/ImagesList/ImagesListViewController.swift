@@ -32,18 +32,25 @@ final class ImagesListViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        setupUI()
+        setupConstraints()
+        
         tableView.dataSource = self
         tableView.delegate = self
+        tableView.register(ImagesListCell.self, forCellReuseIdentifier: ImagesListCell.reuseIdentifier)
         
         let verticalInset: CGFloat = 12
         tableView.contentInset = UIEdgeInsets(top: verticalInset, left: 0, bottom: verticalInset, right: 0)
     }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        navigationController?.setNavigationBarHidden(true, animated: false)
+    }
 }
 
 extension ImagesListViewController: UITableViewDelegate {
-//    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-//        performSegue(withIdentifier: showSingleImageSegueIdentifier, sender: indexPath)
-//    }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         guard let image = UIImage(named: photoNames[indexPath.row]) else {
@@ -57,6 +64,21 @@ extension ImagesListViewController: UITableViewDelegate {
         let cellHeight = image.size.height * scale + imageInsets.top + imageInsets.bottom
         
         return cellHeight
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        
+        guard let image = UIImage(named: photoNames[indexPath.row]) else {
+            return
+        }
+        
+        let singleImageVC = SingleImageViewController()
+        singleImageVC.image = image
+        
+        singleImageVC.modalPresentationStyle = .fullScreen
+        singleImageVC.modalTransitionStyle = .coverVertical
+        present(singleImageVC, animated: true)
     }
 }
 
@@ -94,15 +116,18 @@ private extension ImagesListViewController {
 
 private extension ImagesListViewController {
     func setupUI() {
-        view.backgroundColor = .ypWhite
+        view.backgroundColor = .ypBlack
         view.addSubview(tableView)
+        tableView.backgroundColor = .ypBlack
+        tableView.separatorStyle = .none
     }
     
     func setupConstraints() {
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.topAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
 }

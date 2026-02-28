@@ -22,6 +22,8 @@ final class ProfileViewController: UIViewController {
         static let secondaryFontSize: CGFloat = 13
     }
     
+    override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
+    
     // MARK: - Private Properties
     
     private let profileService = ProfileService.shared
@@ -99,7 +101,15 @@ final class ProfileViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
+        navigationController?.setNavigationBarHidden(true, animated: false)
+        setNeedsStatusBarAppearanceUpdate()
+        
         updateProfileLabelsIfNeeded()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: false)
     }
     
     deinit {
