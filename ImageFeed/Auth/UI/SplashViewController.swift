@@ -5,6 +5,13 @@
 //  Created by Максим on 06.02.2026.
 //
 
+
+final class AuthNavigationController: UINavigationController {
+    override var childForStatusBarStyle: UIViewController? {
+        topViewController
+    }
+}
+
 import UIKit
 
 final class SplashViewController: UIViewController {
@@ -55,14 +62,16 @@ final class SplashViewController: UIViewController {
         setNeedsStatusBarAppearanceUpdate()
     }
     
+    
     // MARK: - Private
     
     private func presentAuthViewController() {
         let authVC = AuthViewController()
         authVC.delegate = self
         
-        let navVC = UINavigationController(rootViewController: authVC)
+        let navVC = AuthNavigationController(rootViewController: authVC)
         navVC.modalPresentationStyle = .fullScreen
+        navVC.modalPresentationCapturesStatusBarAppearance = true
         present(navVC, animated: true)
     }
     

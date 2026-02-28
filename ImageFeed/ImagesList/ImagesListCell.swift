@@ -87,7 +87,7 @@ final class ImagesListCell: UITableViewCell {
         
         contentView.addSubview(cellImage)
         contentView.addSubview(dateBackgroundView)
-        dateBackgroundView.addSubview(dateLabel)
+        contentView.addSubview(dateLabel)
         contentView.addSubview(likeButton)
         
         setupConstraints()

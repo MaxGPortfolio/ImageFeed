@@ -60,13 +60,14 @@ final class ProfileViewController: UIViewController {
         label.font = .systemFont(ofSize: Constants.secondaryFontSize, weight: .regular)
         label.textColor = .ypWhite
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.numberOfLines = 0
+        label.lineBreakMode = .byWordWrapping
         return label
     }()
     
     private lazy var logoutButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(.exit, for: .normal)
-        button.tintColor = .ypRed
+        button.setImage(UIImage(named: "Exit")?.withRenderingMode(.alwaysOriginal), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -80,6 +81,7 @@ final class ProfileViewController: UIViewController {
         setupConstraints()
         setupActions()
         configureUI()
+        updateProfileLabelsIfNeeded()
         
         profileImageServiceObserver = NotificationCenter.default
             .addObserver(
@@ -100,16 +102,7 @@ final class ProfileViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
-        navigationController?.setNavigationBarHidden(true, animated: false)
-        setNeedsStatusBarAppearanceUpdate()
-        
         updateProfileLabelsIfNeeded()
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        navigationController?.setNavigationBarHidden(false, animated: false)
     }
     
     deinit {

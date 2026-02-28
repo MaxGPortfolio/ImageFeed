@@ -52,6 +52,7 @@ final class WebViewViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setNeedsStatusBarAppearanceUpdate()
+        navigationController?.navigationBar.tintColor = .black
     }
     
     override func viewDidLoad() {

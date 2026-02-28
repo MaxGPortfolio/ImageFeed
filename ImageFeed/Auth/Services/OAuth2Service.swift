@@ -47,8 +47,7 @@ final class OAuth2Service {
         assert(Thread.isMainThread)
         
         guard lastCode != code else {
-            print("[OAuth2Service.fetchAuthToken]: OAuth2ServiceError.invalidRequest code=\(code)")
-            completion(.failure(OAuth2ServiceError.invalidRequest))
+            print("[OAuth2Service.fetchAuthToken]: duplicate code ignored code=\(code)")
             return
         }
         
@@ -59,6 +58,8 @@ final class OAuth2Service {
             let request = makeOAuthTokenRequest(code: code)
         else {
             print("[OAuth2Service.fetchAuthToken]: OAuth2ServiceError.invalidRequest request=nil code=\(code)")
+            self.task = nil
+            self.lastCode = nil
             completion(.failure(OAuth2ServiceError.invalidRequest))
             return
         }

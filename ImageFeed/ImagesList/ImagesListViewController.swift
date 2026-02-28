@@ -42,12 +42,6 @@ final class ImagesListViewController: UIViewController {
         let verticalInset: CGFloat = 12
         tableView.contentInset = UIEdgeInsets(top: verticalInset, left: 0, bottom: verticalInset, right: 0)
     }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        navigationController?.setNavigationBarHidden(true, animated: false)
-    }
 }
 
 extension ImagesListViewController: UITableViewDelegate {

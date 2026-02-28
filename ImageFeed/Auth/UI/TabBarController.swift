@@ -23,28 +23,43 @@ final class TabBarController: UITabBarController {
         
         feedNav.tabBarItem = UITabBarItem(
             title: "",
-            image: UIImage(named: "tab_editorial_active"),
-            selectedImage: nil
+            image: UIImage(named: "tab_editorial_no_active"),
+            selectedImage: UIImage(named: "tab_editorial_active")
         )
         
         profileNav.tabBarItem = UITabBarItem(
             title: "",
-            image: UIImage(named: "tab_profile_active"),
-            selectedImage: nil
+            image: UIImage(named: "tab_profile_no_active"),
+            selectedImage: UIImage(named: "tab_profile_active")
         )
         
-        
         viewControllers = [feedNav, profileNav]
+        
+        feedNav.setNavigationBarHidden(true, animated: false)
+        profileNav.setNavigationBarHidden(true, animated: false)
+        
+        feedNav.view.backgroundColor = .ypBlack
+        profileNav.view.backgroundColor = .ypBlack
     }
     
     private func setupAppearance() {
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
+        
+        appearance.backgroundEffect = nil
         appearance.backgroundColor = .ypBlack
         
+        appearance.stackedLayoutAppearance.selected.iconColor = .white
+        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [.foregroundColor: UIColor.white]
+        appearance.stackedLayoutAppearance.normal.iconColor = .ypGray
+        appearance.stackedLayoutAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.ypGray]
+
         if #available(iOS 15.0, *) {
             tabBar.scrollEdgeAppearance = appearance
         }
+
         tabBar.standardAppearance = appearance
     }
 }
+
+
