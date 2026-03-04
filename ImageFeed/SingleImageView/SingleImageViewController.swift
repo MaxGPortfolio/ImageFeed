@@ -12,52 +12,108 @@ final class SingleImageViewController: UIViewController {
     // MARK: - Constants
     
     private enum Constants {
-        static let minimumZoomScale: CGFloat = 0.1
+        static let minimumZoomScale: CGFloat = 0.2
         static let maximumZoomScale: CGFloat = 1.25
+        
+        static let backButtonSize: CGFloat = 24
+        static let backButtonTopInset: CGFloat = 11
+        static let backButtonLeadingInset: CGFloat = 8
+        static let shareButtonSize: CGFloat = 50
+        static let shareButtonBottomConstraintHasHomeIndicator: CGFloat = 17
+        static let shareButtonBottomConstraintDoesNotHaveHomeIndicator: CGFloat = 30
+        
+        static let backButtonImageName = UIImage(resource: .backArrowWhite)
+        static let shareButtonImageName = UIImage(resource: .sharing)
     }
     
-    // MARK: - IBOutlets
-    
-    @IBOutlet private weak var imageView: UIImageView!
-    @IBOutlet private weak var scrollView: UIScrollView!
+    private var shareButtonBottomConstraint: NSLayoutConstraint?
     
     // MARK: - Public Properties
     
     var image: UIImage? {
         didSet {
-            guard isViewLoaded, let image else {
-                return
+            hasConfiguredImage = false
+            lastScrollViewBounds = .zero
+            
+            if isViewLoaded {
+                view.setNeedsLayout()
             }
-            configure(with: image)
         }
     }
+    
+    override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
+    
+    // MARK: - Private Properties
+    
+    private lazy var imageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFit
+        return imageView
+    }()
+    
+    private lazy var scrollView: UIScrollView = {
+        let scrollView = UIScrollView()
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        return scrollView
+    }()
+    
+    private lazy var backButton: UIButton = {
+        let button = UIButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(Constants.backButtonImageName, for: .normal)
+        return button
+    }()
+    
+    private lazy var shareButton: UIButton = {
+        let button = UIButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(Constants.shareButtonImageName, for: .normal)
+        return button
+    }()
+    
+    private var hasConfiguredImage = false
+    private var lastScrollViewBounds: CGRect = .zero
     
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupViews()
+        setupActions()
+        setupConstraints()
         setupScrollView()
-        configureIfNeeded()
+    }
+    
+    override func viewSafeAreaInsetsDidChange() {
+        super.viewSafeAreaInsetsDidChange()
+
+        let hasHomeIndicator = view.safeAreaInsets.bottom > 0
+        shareButtonBottomConstraint?.constant = hasHomeIndicator
+            ? -Constants.shareButtonBottomConstraintHasHomeIndicator
+            : -Constants.shareButtonBottomConstraintDoesNotHaveHomeIndicator
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        configureIfNeeded()
-    }
-    
-    // MARK: - Actions
-    
-    @IBAction private func didTapShareButton(_ sender: UIButton) {
+
         guard let image else { return }
-        present(
-            UIActivityViewController(activityItems: [image], applicationActivities: nil),
-            animated: true,
-            completion: nil
-        )
+
+        if !hasConfiguredImage {
+            // Первый раз: полноценная конфигурация
+            configure(with: image)
+            hasConfiguredImage = true
+            lastScrollViewBounds = scrollView.bounds
+            return
+        }
+
+        if scrollView.bounds != lastScrollViewBounds {
+            relayoutForCurrentBounds(image: image)
+            lastScrollViewBounds = scrollView.bounds
+        }
     }
     
-    @IBAction private func didTapBackButton() {
-        dismiss(animated: true)
+    private func relayoutForCurrentBounds(image: UIImage) {
+        rescaleAndCenterImageInScrollView(image: image)
     }
     
     // MARK: - Private
@@ -66,13 +122,6 @@ final class SingleImageViewController: UIViewController {
         scrollView.minimumZoomScale = Constants.minimumZoomScale
         scrollView.maximumZoomScale = Constants.maximumZoomScale
         scrollView.delegate = self
-    }
-    
-    private func configureIfNeeded() {
-        guard let image else {
-            return
-        }
-        configure(with: image)
     }
     
     private func rescaleAndCenterImageInScrollView(image: UIImage) {
@@ -134,5 +183,71 @@ extension SingleImageViewController: UIScrollViewDelegate {
     
     func scrollViewDidEndZooming(_ scrollView: UIScrollView, with view: UIView?, atScale scale: CGFloat) {
         updateInsetsForCentering()
+    }
+}
+
+private extension SingleImageViewController {
+    
+    // MARK: - Setup
+    func setupViews() {
+        view.backgroundColor = .ypBlack
+        view.addSubview(scrollView)
+        scrollView.addSubview(imageView)
+        view.addSubview(backButton)
+        view.addSubview(shareButton)
+    }
+    
+    func setupConstraints() {
+        let bottomConstraint = shareButton.bottomAnchor.constraint(
+            equalTo: view.safeAreaLayoutGuide.bottomAnchor,
+            constant: -Constants.shareButtonBottomConstraintHasHomeIndicator
+        )
+        shareButtonBottomConstraint = bottomConstraint
+
+        NSLayoutConstraint.activate([
+            scrollView.topAnchor.constraint(equalTo: view.topAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            
+            backButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: Constants.backButtonTopInset),
+            backButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Constants.backButtonLeadingInset),
+            backButton.heightAnchor.constraint(equalToConstant: Constants.backButtonSize),
+            backButton.widthAnchor.constraint(equalToConstant: Constants.backButtonSize),
+            
+            shareButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            shareButton.heightAnchor.constraint(equalToConstant: Constants.shareButtonSize),
+            shareButton.widthAnchor.constraint(equalToConstant: Constants.shareButtonSize),
+            bottomConstraint
+        ])
+    }
+    
+    func setupActions() {
+        backButton.addTarget(
+            self,
+            action: #selector(didTapBackButton),
+            for: .touchUpInside
+        )
+        
+        shareButton.addTarget(
+            self,
+            action: #selector(didTapShareButton),
+            for: .touchUpInside
+        )
+    }
+    
+    // MARK: - Actions
+    @objc
+    private func didTapBackButton() {
+        dismiss(animated: true)
+    }
+    
+    @objc
+    private func didTapShareButton() {
+        guard let image else { return }
+        present(
+            UIActivityViewController(activityItems: [image], applicationActivities: nil),
+            animated: true
+        )
     }
 }

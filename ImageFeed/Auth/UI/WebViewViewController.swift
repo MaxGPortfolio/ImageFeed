@@ -8,6 +8,7 @@
 import UIKit
 import WebKit
 
+// MARK: - Constants
 private enum WebViewConstants {
     static let unsplashAuthorizeURLString = "https://unsplash.com/oauth/authorize"
 
@@ -15,17 +16,33 @@ private enum WebViewConstants {
     static let progressHideThreshold: Double = 0.001
 }
 
+// MARK: - Delegate
 protocol WebViewViewControllerDelegate: AnyObject {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String)
     func webViewViewControllerDidCancel(_ vc: WebViewViewController)
 }
 
+// MARK: - WebViewViewController
 final class WebViewViewController: UIViewController {
 
-    // MARK: - IBOutlets
-    @IBOutlet private weak var webView: WKWebView!
-    @IBOutlet private weak var progressView: UIProgressView!
-
+    // MARK: - Private Properties
+    
+    private lazy var webView: WKWebView = {
+        let webView = WKWebView()
+        webView.translatesAutoresizingMaskIntoConstraints = false
+        return webView
+    }()
+    
+    private let progressView: UIProgressView = {
+        let view = UIProgressView(progressViewStyle: .default)
+        view.progress = 0
+        view.isHidden = false
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private var estimatedProgressObservation: NSKeyValueObservation?
+    
     // MARK: - Public Properties
     weak var delegate: WebViewViewControllerDelegate?
     
@@ -38,58 +55,36 @@ final class WebViewViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setNeedsStatusBarAppearanceUpdate()
+        navigationController?.navigationBar.tintColor = .black
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupViews()
+        setupConstraints()
         webView.navigationDelegate = self
-        loadAuthView()
-        updateProgress()
-    }
-
-    override func observeValue(
-        forKeyPath keyPath: String?,
-        of object: Any?,
-        change: [NSKeyValueChangeKey : Any]?,
-        context: UnsafeMutableRawPointer?
-    ) {
-        guard keyPath == #keyPath(WKWebView.estimatedProgress) else {
-            super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
-            return
+        estimatedProgressObservation = webView.observe(
+            \.estimatedProgress,
+            options: [.new]
+        ) { [weak self] _, _ in
+            guard let self else { return }
+            updateProgress()
         }
-        updateProgress()
-    }
-
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        webView.addObserver(
-            self,
-            forKeyPath: #keyPath(WKWebView.estimatedProgress),
-            options: .new,
-            context: nil
-        )
-        updateProgress()
-    }
-
-    override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
-        webView.removeObserver(
-            self,
-            forKeyPath: #keyPath(WKWebView.estimatedProgress),
-            context: nil
-        )
+        loadAuthView()
     }
 
     // MARK: - Private
     private func updateProgress() {
         progressView.progress = Float(webView.estimatedProgress)
-        progressView.isHidden = fabs(webView.estimatedProgress - WebViewConstants.progressComplete) <= WebViewConstants.progressHideThreshold
+        progressView.isHidden = abs(webView.estimatedProgress - WebViewConstants.progressComplete) <= WebViewConstants.progressHideThreshold
     }
 }
 
+// MARK: - Private Helpers
 private extension WebViewViewController {
     func loadAuthView() {
         guard var urlComponents = URLComponents(string: WebViewConstants.unsplashAuthorizeURLString) else {
+            delegate?.webViewViewControllerDidCancel(self)
             print("❌ Failed to create URLComponents for authorize URL")
             return
         }
@@ -98,10 +93,11 @@ private extension WebViewViewController {
             URLQueryItem(name: "client_id", value: Constants.accessKey),
             URLQueryItem(name: "redirect_uri", value: Constants.redirectURL),
             URLQueryItem(name: "response_type", value: "code"),
-            URLQueryItem(name: "scope", value: Constants.accessScope)
+            URLQueryItem(name: "scope", value: Constants.accessScope),
         ]
 
         guard let url = urlComponents.url else {
+            delegate?.webViewViewControllerDidCancel(self)
             print("❌ Failed to build authorize URL")
             return
         }
@@ -111,12 +107,13 @@ private extension WebViewViewController {
     }
 }
 
+// MARK: - WKNavigationDelegate
 extension WebViewViewController: WKNavigationDelegate {
     
     func webView(
         _ webView: WKWebView,
         decidePolicyFor navigationAction: WKNavigationAction,
-        decisionHandler: @escaping @MainActor (WKNavigationActionPolicy) -> Void
+        decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
     ) {
         if let code = code(from: navigationAction) {
             delegate?.webViewViewController(self, didAuthenticateWithCode: code)
@@ -141,3 +138,24 @@ extension WebViewViewController: WKNavigationDelegate {
     }
 }
 
+// MARK: - Setup
+private extension WebViewViewController {
+    func setupViews() {
+        view.backgroundColor = .ypWhite
+        view.addSubview(progressView)
+        view.addSubview(webView)
+    }
+    
+    func setupConstraints() {
+        NSLayoutConstraint.activate([
+            progressView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            progressView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            progressView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            
+            webView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            webView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            webView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            webView.topAnchor.constraint(equalTo: progressView.bottomAnchor)
+        ])
+    }
+}
