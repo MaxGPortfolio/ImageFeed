@@ -31,7 +31,7 @@ final class OAuth2TokenStorage {
     
     var token: String? {
         get {
-            return keychain.string(forKey: Constants.tokenKey)
+            keychain.string(forKey: Constants.tokenKey)
         }
         set {
             if let newValue {

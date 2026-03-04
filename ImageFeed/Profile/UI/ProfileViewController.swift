@@ -20,8 +20,8 @@ final class ProfileViewController: UIViewController {
         static let logoutButtonSize: CGFloat = 44
         static let nameFontSize: CGFloat = 23
         static let secondaryFontSize: CGFloat = 13
-        static let placeholderImageName = "userPic"
-        static let logoutImageName = "Exit"
+        static let placeholderImageName = UIImage(resource: .userPic)
+        static let logoutImageName = UIImage(resource: .exit)
     }
     
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
@@ -69,7 +69,7 @@ final class ProfileViewController: UIViewController {
     
     private lazy var logoutButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(UIImage(named: Constants.logoutImageName)?.withRenderingMode(.alwaysOriginal), for: .normal)
+        button.setImage(Constants.logoutImageName.withRenderingMode(.alwaysOriginal), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -119,13 +119,13 @@ final class ProfileViewController: UIViewController {
             let profileImageURL = profileImageService.avatarURL,
             let url = URL(string: profileImageURL)
         else {
-            profileImageView.image = UIImage(named: Constants.placeholderImageName)
+            profileImageView.image = Constants.placeholderImageName
             return
         }
         
         print("imageUrl: \(url)")
         
-        let placeholderImage = UIImage(named: Constants.placeholderImageName)
+        let placeholderImage = Constants.placeholderImageName
         
         profileImageView.kf.setImage(
             with: url,

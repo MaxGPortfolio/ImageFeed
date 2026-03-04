@@ -12,10 +12,10 @@ final class TabBarController: UITabBarController {
     // MARK: - Constants
     
     private enum Constants {
-        static let feedTabImage = "tab_editorial_no_active"
-        static let feedTabSelectedImage = "tab_editorial_active"
-        static let profileTabImage = "tab_profile_no_active"
-        static let profileTabSelectedImage = "tab_profile_active"
+        static let feedTabImage = UIImage(resource: .tabEditorialNoActive)
+        static let feedTabSelectedImage = UIImage(resource: .tabEditorialActive)
+        static let profileTabImage = UIImage(resource: .tabProfileNoActive)
+        static let profileTabSelectedImage = UIImage(resource: .tabProfileActive)
     }
     
     // MARK: - Lifecycle
@@ -36,14 +36,14 @@ final class TabBarController: UITabBarController {
         
         feedNav.tabBarItem = UITabBarItem(
             title: "",
-            image: UIImage(named: Constants.feedTabImage),
-            selectedImage: UIImage(named: Constants.feedTabSelectedImage)
+            image: Constants.feedTabImage,
+            selectedImage: Constants.feedTabSelectedImage
         )
         
         profileNav.tabBarItem = UITabBarItem(
             title: "",
-            image: UIImage(named: Constants.profileTabImage),
-            selectedImage: UIImage(named: Constants.profileTabSelectedImage)
+            image: Constants.profileTabImage,
+            selectedImage: Constants.profileTabSelectedImage
         )
         
         viewControllers = [feedNav, profileNav]

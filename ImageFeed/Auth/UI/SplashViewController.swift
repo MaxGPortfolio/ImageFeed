@@ -20,7 +20,7 @@ final class SplashViewController: UIViewController {
     // MARK: - Constants
     
     private enum Constants {
-        static let splashLogoImageName = "splash_screen_logo"
+        static let splashLogoImageName = UIImage(resource: .splashScreenLogo)
     }
     
     // MARK: - Private Properties
@@ -31,7 +31,7 @@ final class SplashViewController: UIViewController {
     
     private lazy var logoImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(named: Constants.splashLogoImageName)
+        imageView.image = Constants.splashLogoImageName
         imageView.contentMode = .center
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView

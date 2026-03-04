@@ -22,8 +22,8 @@ final class SingleImageViewController: UIViewController {
         static let shareButtonBottomConstraintHasHomeIndicator: CGFloat = 17
         static let shareButtonBottomConstraintDoesNotHaveHomeIndicator: CGFloat = 30
         
-        static let backButtonImageName = "Backward_White"
-        static let shareButtonImageName = "Sharing"
+        static let backButtonImageName = UIImage(resource: .backArrowWhite)
+        static let shareButtonImageName = UIImage(resource: .sharing)
     }
     
     private var shareButtonBottomConstraint: NSLayoutConstraint?
@@ -60,14 +60,14 @@ final class SingleImageViewController: UIViewController {
     private lazy var backButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(UIImage(named: Constants.backButtonImageName), for: .normal)
+        button.setImage(Constants.backButtonImageName, for: .normal)
         return button
     }()
     
     private lazy var shareButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(UIImage(named: Constants.shareButtonImageName), for: .normal)
+        button.setImage(Constants.shareButtonImageName, for: .normal)
         return button
     }()
     

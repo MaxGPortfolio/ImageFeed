@@ -17,8 +17,10 @@ final class AuthViewController: UIViewController {
     // MARK: - Constants
     
     private enum Constants {
-        static let backArrowImageName = "Backward_Black"
-        static let navigationTintColorName = "ypBlack"
+        static let backArrowImageName = UIImage(resource: .backArrowBlack)
+        static let authLogoImageName = UIImage(resource: .authScreenLogo)
+        static let loginButtonTitleColor = UIColor(resource: .ypBlack)
+        static let navigationTintColorName = UIColor(resource: .ypBlack)
     }
     
     private enum LayoutConstants {
@@ -37,7 +39,7 @@ final class AuthViewController: UIViewController {
     
     private lazy var authLogoImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(named: "auth_screen_logo")
+        imageView.image = Constants.authLogoImageName
         imageView.contentMode = .scaleAspectFit
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
@@ -46,7 +48,7 @@ final class AuthViewController: UIViewController {
     private lazy var loginButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Войти", for: .normal)
-        button.setTitleColor(UIColor(named: "ypBlack") ?? .black, for: .normal)
+        button.setTitleColor(Constants.loginButtonTitleColor, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: LayoutConstants.loginFontSize, weight: .bold)
         button.backgroundColor = .ypWhite
         button.layer.masksToBounds = true
@@ -82,10 +84,10 @@ final class AuthViewController: UIViewController {
     // MARK: - Private
     
     private func configureBackButton() {
-        navigationController?.navigationBar.backIndicatorImage = UIImage(named: Constants.backArrowImageName)
-        navigationController?.navigationBar.backIndicatorTransitionMaskImage = UIImage(named: Constants.backArrowImageName)
+        navigationController?.navigationBar.backIndicatorImage = Constants.backArrowImageName
+        navigationController?.navigationBar.backIndicatorTransitionMaskImage = Constants.backArrowImageName
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
-        navigationController?.navigationBar.tintColor = UIColor(named: Constants.navigationTintColorName)
+        navigationController?.navigationBar.tintColor = Constants.navigationTintColorName
     }
     
     private func closeWebView(_ viewController: UIViewController) {

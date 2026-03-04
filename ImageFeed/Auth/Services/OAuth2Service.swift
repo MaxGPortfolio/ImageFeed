@@ -13,13 +13,19 @@ struct OAuthTokenResponseBody: Decodable {
     let accessToken: String
 }
 
+enum HTTPMethod: String {
+    case get = "GET"
+    case post = "POST"
+    case put = "PUT"
+    case delete = "DELETE"
+}
+
 final class OAuth2Service {
     
     // MARK: - OAuth-specific constants
     
     private enum OAuthConstants {
         static let tokenURLString = "https://unsplash.com/oauth/token"
-        static let httpMethodPost = "POST"
         static let grantTypeAuthorizationCode = "authorization_code"
     }
     
@@ -114,7 +120,7 @@ final class OAuth2Service {
         }
         
         var request = URLRequest(url: authTokenUrl)
-        request.httpMethod = OAuthConstants.httpMethodPost
+        request.httpMethod = HTTPMethod.post.rawValue
         return request
     }
 }
