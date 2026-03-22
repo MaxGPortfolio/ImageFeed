@@ -24,6 +24,8 @@ final class ProfileViewController: UIViewController {
         static let logoutImageName = UIImage(resource: .exit)
     }
     
+    // MARK: - Public Properties
+    
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
     
     // MARK: - Private Properties
@@ -31,6 +33,7 @@ final class ProfileViewController: UIViewController {
     private let profileService = ProfileService.shared
     private var profileImageServiceObserver: NSObjectProtocol?
     private let profileImageService = ProfileImageService.shared
+    private let profilelogoutService = ProfileLogoutService.shared
     
     private lazy var profileImageView: UIImageView = {
         let imageView = UIImageView()
@@ -112,7 +115,7 @@ final class ProfileViewController: UIViewController {
         }
     }
     
-    // MARK: - Setup
+    // MARK: - Private Helpers
     
     private func updateAvatar() {
         guard
@@ -154,6 +157,8 @@ final class ProfileViewController: UIViewController {
         bioLabel.text = profile.bio
     }
     
+    // MARK: - Setup
+    
     private func setupViews() {
         view.addSubview(profileImageView)
         view.addSubview(nameLabel)
@@ -188,6 +193,8 @@ final class ProfileViewController: UIViewController {
         ])
     }
     
+    // MARK: - Actions
+    
     private func setupActions() {
         logoutButton.addTarget(
             self,
@@ -208,8 +215,40 @@ final class ProfileViewController: UIViewController {
         profileImageView.layer.cornerRadius = profileImageView.bounds.width / 2
     }
     
+    private func switchToSplashViewController() {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first else {
+            return
+        }
+        
+        window.rootViewController = SplashViewController()
+        window.makeKeyAndVisible()
+    }
+    
     // MARK: - Actions
     
     @objc
-    private func didTapLogoutButton() { }
+    private func didTapLogoutButton() {
+        showLogoutAlert()
+    }
+    
+    private func showLogoutAlert() {
+        let alert = UIAlertController(
+            title: "Пока, пока!",
+            message: "Уверены, что хотите выйти?",
+            preferredStyle: .alert
+        )
+        
+        let yesAction = UIAlertAction(title: "Да", style: .default) { [weak self] _ in
+            guard let self else { return }
+            self.profilelogoutService.logout()
+            self.switchToSplashViewController()
+        }
+        
+        let noAction = UIAlertAction(title: "Нет", style: .default)
+        
+        alert.addAction(yesAction)
+        alert.addAction(noAction)
+        present(alert, animated: true)
+    }
 }
