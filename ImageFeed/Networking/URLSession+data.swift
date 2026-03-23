@@ -20,6 +20,12 @@ enum NetworkError: Error {
 // MARK: - Properties
 
 private let logger = Logger(label: "network.URLSession")
+private let decoder: JSONDecoder = {
+    let decoder = JSONDecoder()
+    decoder.keyDecodingStrategy = .convertFromSnakeCase
+    decoder.dateDecodingStrategy = .iso8601
+    return decoder
+}()
 
 // MARK: - Data Task
 
@@ -39,7 +45,6 @@ extension URLSession {
                 if 200 ..< 300 ~= statusCode {
                     completeOnTheMainThread(.success(data))
                 } else {
-                    let body = String(data: data, encoding: .utf8)
                     logger.error("HTTP error with status code \(statusCode)")
                     completeOnTheMainThread(.failure(NetworkError.httpStatusCode(statusCode)))
                 }
@@ -63,10 +68,6 @@ extension URLSession {
         completion: @escaping (Result<T, Error>) -> Void
     ) -> URLSessionTask {
         
-        let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        decoder.dateDecodingStrategy = .iso8601
-        
         let task = data(for: request) { result in
             
             switch result {
@@ -76,7 +77,6 @@ extension URLSession {
                     let decodedObject = try decoder.decode(T.self, from: data)
                     completion(.success(decodedObject))
                 } catch {
-                    let body = String(data: data, encoding: .utf8) ?? "nil"
                     logger.error("Decoding error for type \(T.self): \(error.localizedDescription)")
                     completion(.failure(NetworkError.decodingError(error)))
                 }
