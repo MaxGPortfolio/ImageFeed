@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Logging
 
 // MARK: - Models
 
@@ -41,9 +42,10 @@ final class OAuth2Service {
     
     // MARK: - Properties
     
-    private let urlSession = URLSession.shared
     private var task: URLSessionTask?
     private var lastCode: String?
+    private let urlSession = URLSession.shared
+    private let logger = Logger(label: "OAuth2Service")
     
     // MARK: - Init
     
@@ -55,7 +57,7 @@ final class OAuth2Service {
         assert(Thread.isMainThread)
         
         guard lastCode != code else {
-            print("[OAuth2Service.fetchAuthToken]: duplicate code ignored code=\(code)")
+            logger.warning("OAuth token request ignored: duplicate authorization code")
             return
         }
         
@@ -63,7 +65,7 @@ final class OAuth2Service {
         lastCode = code
         
         guard let request = makeOAuthTokenRequest(code: code) else {
-            print("[OAuth2Service.fetchAuthToken]: OAuth2ServiceError.invalidRequest request=nil code=\(code)")
+            logger.error("OAuth token request failed: invalid request")
             task = nil
             lastCode = nil
             completion(.failure(OAuth2ServiceError.invalidRequest))
@@ -71,10 +73,11 @@ final class OAuth2Service {
         }
         
         var requestTask: URLSessionTask?
+        let logger = self.logger
         
         requestTask = urlSession.objectTask(for: request) { [weak self] (result: Result<OAuthTokenResponseBody, Error>) in
             guard let self else {
-                print("[OAuth2Service.fetchAuthToken]: NetworkError.urlSessionError self=nil code=\(code)")
+                logger.error("OAuth token request failed: service deallocated before completion")
                 completion(.failure(NetworkError.urlSessionError))
                 return
             }
@@ -88,9 +91,10 @@ final class OAuth2Service {
             
             switch result {
             case .success(let body):
+                logger.info("OAuth token successfully received")
                 completion(.success(body.accessToken))
             case .failure(let error):
-                print("[OAuth2Service.fetchAuthToken]: \(error) code=\(code)")
+                logger.error("OAuth token request failed: \(error.localizedDescription)")
                 completion(.failure(error))
             }
         }
@@ -102,7 +106,7 @@ final class OAuth2Service {
     
     private func makeOAuthTokenRequest(code: String) -> URLRequest? {
         guard var urlComponents = URLComponents(string: OAuthConstants.tokenURLString) else {
-            print("❌ Failed to create URLComponents for token request")
+            logger.error("Failed to create URLComponents for OAuth token request")
             return nil
         }
         
@@ -115,7 +119,7 @@ final class OAuth2Service {
         ]
         
         guard let authTokenUrl = urlComponents.url else {
-            print("❌ Failed to build token request URL")
+            logger.error("Failed to build OAuth token request URL")
             return nil
         }
         

@@ -5,6 +5,7 @@
 //  Created by Максим on 05.02.2026.
 //
 import Foundation
+import Logging
 
 // MARK: - Errors
 
@@ -15,6 +16,16 @@ enum NetworkError: Error {
     case invalidRequest
     case decodingError(Error)
 }
+
+// MARK: - Properties
+
+private let logger = Logger(label: "network.URLSession")
+private let decoder: JSONDecoder = {
+    let decoder = JSONDecoder()
+    decoder.keyDecodingStrategy = .convertFromSnakeCase
+    decoder.dateDecodingStrategy = .iso8601
+    return decoder
+}()
 
 // MARK: - Data Task
 
@@ -34,15 +45,14 @@ extension URLSession {
                 if 200 ..< 300 ~= statusCode {
                     completeOnTheMainThread(.success(data))
                 } else {
-                    let body = String(data: data, encoding: .utf8)
-                    print("[URLSession.data]: NetworkError.httpStatusCode(\(statusCode)) request=\(request.url?.absoluteString ?? "nil") body=\(body ?? "nil")")
+                    logger.error("HTTP error with status code \(statusCode)")
                     completeOnTheMainThread(.failure(NetworkError.httpStatusCode(statusCode)))
                 }
             } else if let error = error {
                 completeOnTheMainThread(.failure(NetworkError.urlRequestError(error)))
-                print("[URLSession.data]: NetworkError.urlRequestError(\(error.localizedDescription)) request=\(request.url?.absoluteString ?? "nil")")
+                logger.error("Network request failed: \(error.localizedDescription)")
             } else {
-                print("[URLSession.data]: NetworkError.urlSessionError request=\(request.url?.absoluteString ?? "nil")")
+                logger.error("Network session error occurred")
                 completeOnTheMainThread(.failure(NetworkError.urlSessionError))
             }
         })
@@ -58,9 +68,6 @@ extension URLSession {
         completion: @escaping (Result<T, Error>) -> Void
     ) -> URLSessionTask {
         
-        let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        
         let task = data(for: request) { result in
             
             switch result {
@@ -70,8 +77,7 @@ extension URLSession {
                     let decodedObject = try decoder.decode(T.self, from: data)
                     completion(.success(decodedObject))
                 } catch {
-                    let body = String(data: data, encoding: .utf8) ?? "nil"
-                    print("[URLSession.objectTask]: NetworkError.decodingError(\(error.localizedDescription)) type=\(T.self) request=\(request.url?.absoluteString ?? "nil") body=\(body)")
+                    logger.error("Decoding error for type \(T.self): \(error.localizedDescription)")
                     completion(.failure(NetworkError.decodingError(error)))
                 }
             case .failure(let error):

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Logging
 
 // MARK: - Models
 
@@ -39,7 +40,10 @@ final class ProfileService {
     
     private enum Constants {
         static let profileURLString = "https://api.unsplash.com/me"
-        static let httpMethodGet = "GET"
+    }
+    
+    private enum HTTPMethod: String {
+        case get = "GET"
     }
     
     // MARK: - Errors
@@ -58,6 +62,7 @@ final class ProfileService {
     private var task: URLSessionTask?
     private var lastToken: String?
     private(set) var profile: Profile?
+    private let logger = Logger(label: "ProfileService")
     
     // MARK: - Init
     
@@ -69,7 +74,7 @@ final class ProfileService {
         assert(Thread.isMainThread)
         
         guard lastToken != token else {
-            print("[ProfileService.fetchProfile]: ProfileServiceError.invalidRequest duplicateToken=\(token)")
+            logger.warning("Profile request ignored: duplicate token")
             completion(.failure(ProfileServiceError.invalidRequest))
             return
         }
@@ -78,15 +83,16 @@ final class ProfileService {
         lastToken = token
         
         guard let request = makeProfileRequest(token: token) else {
-            print("[ProfileService.fetchProfile]: ProfileServiceError.invalidRequest request=nil token=\(token)")
+            logger.error("Failed to fetch profile: could not create request")
             completion(.failure(ProfileServiceError.invalidRequest))
             return
         }
         
+        let logger = self.logger
         var requestTask: URLSessionTask?
         requestTask = urlSession.objectTask(for: request) { [weak self] (result: Result<ProfileResult, Error>) in
             guard let self else {
-                print("[ProfileService.fetchProfile]: NetworkError.urlSessionError self=nil token=\(token)")
+                logger.error("Profile request failed: service deallocated before completion")
                 completion(.failure(NetworkError.urlSessionError))
                 return
             }
@@ -104,7 +110,7 @@ final class ProfileService {
                 self.profile = profile
                 completion(.success(profile))
             case .failure(let error):
-                print("[ProfileService.fetchProfile]: \(error) token=\(token)")
+                logger.error("Failed to fetch profile: \(error.localizedDescription)")
                 completion(.failure(error))
             }
         }
@@ -112,15 +118,22 @@ final class ProfileService {
         requestTask?.resume()
     }
     
+    func cleanProfile() {
+        task?.cancel()
+        task = nil
+        lastToken = nil
+        profile = nil
+    }
+    
     // MARK: - Private
     
     private func makeProfileRequest(token: String) -> URLRequest? {
         guard let url = URL(string: Constants.profileURLString) else {
-            print("❌ Invalid profile URL")
+            logger.error("Failed to create profile request URL")
             return nil
         }
         var request = URLRequest(url: url)
-        request.httpMethod = Constants.httpMethodGet
+        request.httpMethod = HTTPMethod.get.rawValue
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         return request
     }

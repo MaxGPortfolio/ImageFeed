@@ -5,6 +5,7 @@
 //  Created by Максим on 21.02.2026.
 //
 import Foundation
+import Logging
 
 // MARK: - Models
 
@@ -22,7 +23,10 @@ final class ProfileImageService {
     
     private enum Constants {
         static let usersURLString = "https://api.unsplash.com/users/"
-        static let httpMethodGet = "GET"
+    }
+    
+    private enum HTTPMethod: String {
+        case get = "GET"
     }
     
     // MARK: - Errors
@@ -42,6 +46,7 @@ final class ProfileImageService {
     private var lastUsername: String?
     private(set) var avatarURL: String?
     private let tokenStorage = OAuth2TokenStorage.shared
+    private let logger = Logger(label: "ProfileImageService")
     
     // MARK: - Init
     
@@ -56,7 +61,7 @@ final class ProfileImageService {
         assert(Thread.isMainThread)
         
         guard lastUsername != username else {
-            print("[ProfileImageService.fetchProfileImageURL]: ProfileImageServiceError.invalidRequest duplicateUsername=\(username)")
+            logger.warning("Profile image request ignored: duplicate username")
             completion(.failure(ProfileImageServiceError.invalidRequest))
             return
         }
@@ -65,21 +70,22 @@ final class ProfileImageService {
         lastUsername = username
         
         guard let token = tokenStorage.token else {
-            print("[ProfileImageService.fetchProfileImageURL]: ProfileImageServiceError.invalidRequest token=nil username=\(username)")
+            logger.error("Failed to fetch profile image URL: token is missing")
             completion(.failure(ProfileImageServiceError.invalidRequest))
             return
         }
         
         guard let request = makeProfileImageURLRequest(username: username, token: token) else {
-            print("[ProfileImageService.fetchProfileImageURL]: ProfileImageServiceError.invalidRequest request=nil username=\(username)")
+            logger.error("Failed to fetch profile image URL: could not create request")
             completion(.failure(ProfileImageServiceError.invalidRequest))
             return
         }
         
+        let logger = self.logger
         var requestTask: URLSessionTask?
         requestTask = urlSession.objectTask(for: request) { [weak self] (result: Result<UserResult, Error>) in
             guard let self else {
-                print("[ProfileImageService.fetchProfileImageURL]: NetworkError.urlSessionError self=nil username=\(username)")
+                logger.error("Profile image request failed: service deallocated before completion")
                 completion(.failure(NetworkError.urlSessionError))
                 return
             }
@@ -102,7 +108,7 @@ final class ProfileImageService {
                 )
                 completion(.success(urlString))
             case .failure(let error):
-                print("[ProfileImageService.fetchProfileImageURL]: \(error) username=\(username)")
+                logger.error("Failed to fetch profile image URL: \(error.localizedDescription)")
                 completion(.failure(error))
             }
         }
@@ -114,15 +120,24 @@ final class ProfileImageService {
     
     private func makeProfileImageURLRequest(username: String, token: String) -> URLRequest? {
         guard let url = URL(string: "\(Constants.usersURLString)\(username)") else {
-            print("❌ Invalid avatar URL")
+            logger.error("Failed to create profile image request URL")
             return nil
         }
         
         var request = URLRequest(url: url)
-        request.httpMethod = Constants.httpMethodGet
+        request.httpMethod = HTTPMethod.get.rawValue
         
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         
         return request
+    }
+    
+    // MARK: - Cleaning
+    
+    func cleanAvatar() {
+        task?.cancel()
+        task = nil
+        lastUsername = nil
+        avatarURL = nil
     }
 }

@@ -6,13 +6,14 @@
 //
 
 import UIKit
+import Kingfisher
 
 final class SingleImageViewController: UIViewController {
     
     // MARK: - Constants
     
     private enum Constants {
-        static let minimumZoomScale: CGFloat = 0.2
+        static let minimumZoomScale: CGFloat = 0.1  // was 0.2
         static let maximumZoomScale: CGFloat = 1.25
         
         static let backButtonSize: CGFloat = 24
@@ -22,24 +23,19 @@ final class SingleImageViewController: UIViewController {
         static let shareButtonBottomConstraintHasHomeIndicator: CGFloat = 17
         static let shareButtonBottomConstraintDoesNotHaveHomeIndicator: CGFloat = 30
         
-        static let backButtonImageName = UIImage(resource: .backArrowWhite)
-        static let shareButtonImageName = UIImage(resource: .sharing)
+        static let backButtonImage = UIImage(resource: .backArrowWhite)
+        static let shareButtonImage = UIImage(resource: .sharing)
+        static let placeholderImage = UIImage(resource: .stubIcon)
+        static let placeholderImageViewHeight: CGFloat = 75
+        static let placeholderImageViewWidth: CGFloat = 83
     }
     
     private var shareButtonBottomConstraint: NSLayoutConstraint?
     
     // MARK: - Public Properties
     
-    var image: UIImage? {
-        didSet {
-            hasConfiguredImage = false
-            lastScrollViewBounds = .zero
-            
-            if isViewLoaded {
-                view.setNeedsLayout()
-            }
-        }
-    }
+    var imageURL: String?
+    private var image: UIImage?
     
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
     
@@ -60,15 +56,32 @@ final class SingleImageViewController: UIViewController {
     private lazy var backButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(Constants.backButtonImageName, for: .normal)
+        button.setImage(Constants.backButtonImage, for: .normal)
         return button
     }()
     
     private lazy var shareButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(Constants.shareButtonImageName, for: .normal)
+        button.setImage(Constants.shareButtonImage, for: .normal)
         return button
+    }()
+    
+    private lazy var placeholderContainerView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .ypBlack
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private lazy var placeholderImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = Constants.placeholderImage
+        imageView.backgroundColor = .clear
+        imageView.tintColor = .ypWhiteAlpha50
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
     }()
     
     private var hasConfiguredImage = false
@@ -78,34 +91,36 @@ final class SingleImageViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         setupViews()
         setupActions()
         setupConstraints()
         setupScrollView()
+        
+        loadImage()
     }
     
     override func viewSafeAreaInsetsDidChange() {
         super.viewSafeAreaInsetsDidChange()
-
+        
         let hasHomeIndicator = view.safeAreaInsets.bottom > 0
         shareButtonBottomConstraint?.constant = hasHomeIndicator
-            ? -Constants.shareButtonBottomConstraintHasHomeIndicator
-            : -Constants.shareButtonBottomConstraintDoesNotHaveHomeIndicator
+        ? -Constants.shareButtonBottomConstraintHasHomeIndicator
+        : -Constants.shareButtonBottomConstraintDoesNotHaveHomeIndicator
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-
+        
         guard let image else { return }
-
+        
         if !hasConfiguredImage {
-            // Первый раз: полноценная конфигурация
             configure(with: image)
             hasConfiguredImage = true
             lastScrollViewBounds = scrollView.bounds
             return
         }
-
+        
         if scrollView.bounds != lastScrollViewBounds {
             relayoutForCurrentBounds(image: image)
             lastScrollViewBounds = scrollView.bounds
@@ -116,7 +131,47 @@ final class SingleImageViewController: UIViewController {
         rescaleAndCenterImageInScrollView(image: image)
     }
     
-    // MARK: - Private
+    // MARK: - Private Helpers
+    
+    private func loadImage() {
+        guard
+            let imageURL,
+            let url = URL(string: imageURL) else  {
+            showPlaceholder()
+            showImageLoadErrorAlert()
+            return
+        }
+        
+        placeholderContainerView.isHidden = true
+        scrollView.isHidden = false
+        shareButton.isEnabled = false
+        shareButton.alpha = 0.5
+        
+        UIBlockingProgressHUD.show()
+        
+        imageView.kf.setImage(with: url) { [weak self] result in
+            guard let self else {
+                UIBlockingProgressHUD.dismiss()
+                return
+            }
+            
+            UIBlockingProgressHUD.dismiss()
+            
+            switch result {
+                
+            case .success(let value):
+                self.image = value.image
+                self.hidePlaceholder()
+                self.configure(with: value.image)
+                self.hasConfiguredImage = true
+                self.lastScrollViewBounds = self.scrollView.bounds
+            case .failure(let error):
+                print("Ошибка загрузки изображения: \(error)")
+                self.showPlaceholder()
+                self.showImageLoadErrorAlert()
+            }
+        }
+    }
     
     private func setupScrollView() {
         scrollView.minimumZoomScale = Constants.minimumZoomScale
@@ -133,6 +188,8 @@ final class SingleImageViewController: UIViewController {
         let hScale = visibleRectSize.width / imageSize.width
         let vScale = visibleRectSize.height / imageSize.height
         let scale = min(maxZoomScale, max(minZoomScale, max(hScale, vScale)))
+        scrollView.minimumZoomScale = scale
+        scrollView.zoomScale = scale
         scrollView.setZoomScale(scale, animated: false)
         scrollView.layoutIfNeeded()
         updateInsetsForCentering()
@@ -157,10 +214,10 @@ final class SingleImageViewController: UIViewController {
     private func centerContentOffsetIfNeeded() {
         let boundsSize = scrollView.bounds.size
         let contentSize = scrollView.contentSize
-
+        
         let x = max(0, (contentSize.width - boundsSize.width) / 2)
         let y = max(0, (contentSize.height - boundsSize.height) / 2)
-
+        
         scrollView.setContentOffset(CGPoint(x: x, y: y), animated: false)
     }
     
@@ -169,6 +226,36 @@ final class SingleImageViewController: UIViewController {
         imageView.frame = CGRect(origin: .zero, size: image.size)
         scrollView.contentSize = image.size
         rescaleAndCenterImageInScrollView(image: image)
+    }
+    
+    private func showPlaceholder() {
+        placeholderContainerView.isHidden = false
+        scrollView.isHidden = true
+        shareButton.isEnabled = false
+        shareButton.alpha = 0.5
+    }
+    
+    private func hidePlaceholder() {
+        placeholderContainerView.isHidden = true
+        scrollView.isHidden = false
+        shareButton.isEnabled = true
+        shareButton.alpha = 1
+    }
+    
+    private func showImageLoadErrorAlert() {
+        let alert = UIAlertController(
+            title: "Что-то пошло не так(",
+            message: "Не удалось загрузить изображение",
+            preferredStyle: .alert
+        )
+        let action = UIAlertAction(
+            title: "ОК",
+            style: .default,
+        ) { [weak self] _ in
+            self?.dismiss(animated: true)
+        }
+        alert.addAction(action)
+        present(alert, animated: true)
     }
 }
 
@@ -189,12 +276,17 @@ extension SingleImageViewController: UIScrollViewDelegate {
 private extension SingleImageViewController {
     
     // MARK: - Setup
+    
     func setupViews() {
         view.backgroundColor = .ypBlack
         view.addSubview(scrollView)
         scrollView.addSubview(imageView)
+        view.addSubview(placeholderContainerView)
+        placeholderContainerView.addSubview(placeholderImageView)
         view.addSubview(backButton)
         view.addSubview(shareButton)
+        
+        placeholderContainerView.isHidden = true
     }
     
     func setupConstraints() {
@@ -203,12 +295,22 @@ private extension SingleImageViewController {
             constant: -Constants.shareButtonBottomConstraintHasHomeIndicator
         )
         shareButtonBottomConstraint = bottomConstraint
-
+        
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.topAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            
+            placeholderContainerView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            placeholderContainerView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            placeholderContainerView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            placeholderContainerView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            
+            placeholderImageView.centerXAnchor.constraint(equalTo: placeholderContainerView.centerXAnchor),
+            placeholderImageView.centerYAnchor.constraint(equalTo: placeholderContainerView.centerYAnchor),
+            placeholderImageView.heightAnchor.constraint(equalToConstant: Constants.placeholderImageViewHeight),
+            placeholderImageView.widthAnchor.constraint(equalToConstant: Constants.placeholderImageViewWidth),
             
             backButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: Constants.backButtonTopInset),
             backButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Constants.backButtonLeadingInset),

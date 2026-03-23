@@ -10,6 +10,8 @@
 		50004A662F2B92D600E65D4D /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 50004A652F2B92D600E65D4D /* WebKit.framework */; };
 		505DAAAC2F4CFC6C00AB02CC /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 505DAAAB2F4CFC6C00AB02CC /* Kingfisher */; };
 		50632B1B2F434AB900869344 /* ProgressHUD in Frameworks */ = {isa = PBXBuildFile; productRef = 50632B1A2F434AB900869344 /* ProgressHUD */; };
+		5079BDDC2F6984F10080D6DC /* InMemoryLogging in Frameworks */ = {isa = PBXBuildFile; productRef = 5079BDDB2F6984F10080D6DC /* InMemoryLogging */; };
+		5079BDDE2F6984F10080D6DC /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = 5079BDDD2F6984F10080D6DC /* Logging */; };
 		50E7478C2F4DA38800A5E5C2 /* SwiftKeychainWrapper in Frameworks */ = {isa = PBXBuildFile; productRef = 50E7478B2F4DA38800A5E5C2 /* SwiftKeychainWrapper */; };
 /* End PBXBuildFile section */
 
@@ -44,7 +46,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5079BDDE2F6984F10080D6DC /* Logging in Frameworks */,
 				505DAAAC2F4CFC6C00AB02CC /* Kingfisher in Frameworks */,
+				5079BDDC2F6984F10080D6DC /* InMemoryLogging in Frameworks */,
 				50004A662F2B92D600E65D4D /* WebKit.framework in Frameworks */,
 				50E7478C2F4DA38800A5E5C2 /* SwiftKeychainWrapper in Frameworks */,
 				50632B1B2F434AB900869344 /* ProgressHUD in Frameworks */,
@@ -102,6 +106,8 @@
 				50632B1A2F434AB900869344 /* ProgressHUD */,
 				505DAAAB2F4CFC6C00AB02CC /* Kingfisher */,
 				50E7478B2F4DA38800A5E5C2 /* SwiftKeychainWrapper */,
+				5079BDDB2F6984F10080D6DC /* InMemoryLogging */,
+				5079BDDD2F6984F10080D6DC /* Logging */,
 			);
 			productName = ImageFeed;
 			productReference = 507190E12EFEAA3D003AECDA /* ImageFeed.app */;
@@ -114,7 +120,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2610;
+				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 2610;
 				TargetAttributes = {
 					507190E02EFEAA3D003AECDA = {
@@ -135,6 +141,7 @@
 				50632B192F434AB900869344 /* XCRemoteSwiftPackageReference "ProgressHUD" */,
 				505DAAAA2F4CFC6C00AB02CC /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				50E7478A2F4DA38800A5E5C2 /* XCRemoteSwiftPackageReference "SwiftKeychainWrapper" */,
+				5079BDDA2F6984F10080D6DC /* XCRemoteSwiftPackageReference "swift-log" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 507190E22EFEAA3D003AECDA /* Products */;
@@ -402,6 +409,14 @@
 				version = 14.1.4;
 			};
 		};
+		5079BDDA2F6984F10080D6DC /* XCRemoteSwiftPackageReference "swift-log" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-log";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.10.1;
+			};
+		};
 		50E7478A2F4DA38800A5E5C2 /* XCRemoteSwiftPackageReference "SwiftKeychainWrapper" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/jrendel/SwiftKeychainWrapper";
@@ -422,6 +437,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 50632B192F434AB900869344 /* XCRemoteSwiftPackageReference "ProgressHUD" */;
 			productName = ProgressHUD;
+		};
+		5079BDDB2F6984F10080D6DC /* InMemoryLogging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5079BDDA2F6984F10080D6DC /* XCRemoteSwiftPackageReference "swift-log" */;
+			productName = InMemoryLogging;
+		};
+		5079BDDD2F6984F10080D6DC /* Logging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5079BDDA2F6984F10080D6DC /* XCRemoteSwiftPackageReference "swift-log" */;
+			productName = Logging;
 		};
 		50E7478B2F4DA38800A5E5C2 /* SwiftKeychainWrapper */ = {
 			isa = XCSwiftPackageProductDependency;
