@@ -16,7 +16,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
         LoggingSystem.bootstrap(StreamLogHandler.standardOutput)
-        ProgressHUD.animationType = .circleStrokeSpin  // в библиотеке ProgressHUD нет .systemActivityIndicator
+        ProgressHUD.animationType = .circleStrokeSpin
         ProgressHUD.colorHUD = .white
         ProgressHUD.colorAnimation = .black
         return true

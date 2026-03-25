@@ -218,7 +218,7 @@ extension ImagesListViewController: ImagesListCellDelegate {
             case .failure:
                 UIBlockingProgressHUD.dismiss()
 
-                let alert = UIAlertController(                      // добавил от себя для лучшего UX
+                let alert = UIAlertController(
                     title: "Что-то пошло не так(",
                     message: "",
                     preferredStyle: .alert
