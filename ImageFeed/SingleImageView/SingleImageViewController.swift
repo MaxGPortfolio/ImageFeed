@@ -19,12 +19,14 @@ final class SingleImageViewController: UIViewController {
         static let backButtonSize: CGFloat = 24
         static let backButtonTopInset: CGFloat = 11
         static let backButtonLeadingInset: CGFloat = 8
+        static let backButtonImage = UIImage(resource: .backArrowWhite)
+        static let backButtonImageIdentifier = "backArrowWhite"
+        
         static let shareButtonSize: CGFloat = 50
         static let shareButtonBottomConstraintHasHomeIndicator: CGFloat = 17
         static let shareButtonBottomConstraintDoesNotHaveHomeIndicator: CGFloat = 30
-        
-        static let backButtonImage = UIImage(resource: .backArrowWhite)
         static let shareButtonImage = UIImage(resource: .sharing)
+        
         static let placeholderImage = UIImage(resource: .stubIcon)
         static let placeholderImageViewHeight: CGFloat = 75
         static let placeholderImageViewWidth: CGFloat = 83
@@ -57,6 +59,7 @@ final class SingleImageViewController: UIViewController {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(Constants.backButtonImage, for: .normal)
+        button.accessibilityIdentifier = Constants.backButtonImageIdentifier
         return button
     }()
     

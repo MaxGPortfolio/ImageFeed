@@ -15,13 +15,21 @@ final class ProfileViewController: UIViewController {
     private enum Constants {
         static let avatarSize: CGFloat = 70
         static let avatarTopInset: CGFloat = 32
+        
         static let horizontalInset: CGFloat = 16
         static let verticalSpacing: CGFloat = 8
+        
         static let logoutButtonSize: CGFloat = 44
-        static let nameFontSize: CGFloat = 23
+        static let logoutImage = UIImage(resource: .exit)
+        static let logoutButtonIdentifier = "logoutButton"
+        
+        static let nameLabelFontSize: CGFloat = 23
+        static let nameLabelIdentifier = "nameLabel"
+        
+        static let usernameLabelIdentifier = "usernameLabel"
+        
         static let secondaryFontSize: CGFloat = 13
-        static let placeholderImageName = UIImage(resource: .userPic)
-        static let logoutImageName = UIImage(resource: .exit)
+        static let placeholderImage = UIImage(resource: .userPic)
     }
     
     // MARK: - Public Properties
@@ -46,9 +54,10 @@ final class ProfileViewController: UIViewController {
     
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: Constants.nameFontSize, weight: .bold)
+        label.font = .systemFont(ofSize: Constants.nameLabelFontSize, weight: .bold)
         label.textColor = .ypWhite
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.accessibilityIdentifier = Constants.nameLabelIdentifier
         return label
     }()
     
@@ -57,6 +66,7 @@ final class ProfileViewController: UIViewController {
         label.font = .systemFont(ofSize: Constants.secondaryFontSize, weight: .regular)
         label.textColor = .ypGray
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.accessibilityIdentifier = Constants.usernameLabelIdentifier
         return label
     }()
     
@@ -72,8 +82,9 @@ final class ProfileViewController: UIViewController {
     
     private lazy var logoutButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(Constants.logoutImageName.withRenderingMode(.alwaysOriginal), for: .normal)
+        button.setImage(Constants.logoutImage.withRenderingMode(.alwaysOriginal), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.accessibilityIdentifier = Constants.logoutButtonIdentifier
         return button
     }()
     
@@ -122,13 +133,13 @@ final class ProfileViewController: UIViewController {
             let profileImageURL = profileImageService.avatarURL,
             let url = URL(string: profileImageURL)
         else {
-            profileImageView.image = Constants.placeholderImageName
+            profileImageView.image = Constants.placeholderImage
             return
         }
         
         print("imageUrl: \(url)")
         
-        let placeholderImage = Constants.placeholderImageName
+        let placeholderImage = Constants.placeholderImage
         
         profileImageView.kf.setImage(
             with: url,

@@ -23,17 +23,19 @@ final class ImagesListCell: UITableViewCell {
         static let cellImageVerticalInset: CGFloat = 4
         static let cellImageHorizontalInset: CGFloat = 16
         static let cellImageCornerRadius: CGFloat = 16
+        
         static let dateBackgroundViewHeight: CGFloat = 30
         static let dateLabelTopInset: CGFloat = 4
         static let dateLabelBottomInset: CGFloat = 4
         static let dateLabelHorizontalInset: CGFloat = 8
+        
         static let likeButtonSize: CGFloat = 44
+        static let likeOnImageName = "like_button_on"
+        static let likeOffImageName = "like_button_off"
         
         static let topColorAlpha: CGFloat = 0
         static let bottomColorAlpha: CGFloat = 0.7
         
-        static let likeOnImageName = "like_button_on"
-        static let likeOffImageName = "like_button_off"
         static let placeholderImage = UIImage(resource: .stubIcon)
         static let placeholderImageViewHeight: CGFloat = 75
         static let placeholderImageViewWidth: CGFloat = 83
@@ -130,6 +132,7 @@ final class ImagesListCell: UITableViewCell {
         ? Constants.likeOnImageName
         : Constants.likeOffImageName
         likeButton.setImage(UIImage(named: imageName), for: .normal)
+        likeButton.accessibilityIdentifier = imageName
     }
     
     // MARK: - Lifecycle
