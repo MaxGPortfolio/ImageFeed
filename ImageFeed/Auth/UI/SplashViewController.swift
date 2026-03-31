@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Logging
 
 // MARK: - Navigation Controller
 
@@ -25,6 +26,7 @@ final class SplashViewController: UIViewController {
     
     // MARK: - Private Properties
     
+    private let logger = Logger(label: "SplashViewController")
     private let tokenStorage = OAuth2TokenStorage.shared
     private let profileService = ProfileService.shared
     private let profileImageService = ProfileImageService.shared
@@ -53,7 +55,10 @@ final class SplashViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        guard let token = tokenStorage.token, !token.isEmpty else {
+        guard
+            let token = tokenStorage.token,
+            !token.isEmpty
+        else {
             if presentedViewController == nil {
                 presentAuthViewController()
             }
@@ -120,7 +125,7 @@ extension SplashViewController: AuthViewControllerDelegate {
                 profileImageService.fetchProfileImageURL(username: username) { _ in }
                 switchToTabBarController()
             case .failure(let error):
-                print("❌ Profile error:", error)
+                logger.error("Profile fetch failed: \(error.localizedDescription)")
                 let isUnauthorized = String(describing: error).contains("401")
                 
                 if isUnauthorized {

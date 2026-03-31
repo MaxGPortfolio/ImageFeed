@@ -20,7 +20,5 @@ final class AuthHelperSpy: AuthHelperProtocol {
         return URLRequest(url: url)
     }
     
-    func code(from url: URL) -> String? {
-        return nil
-    }
+    func code(from url: URL) -> String? { nil }
 }

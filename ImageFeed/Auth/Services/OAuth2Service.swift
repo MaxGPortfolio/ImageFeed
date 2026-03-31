@@ -14,6 +14,8 @@ struct OAuthTokenResponseBody: Decodable {
     let accessToken: String
 }
 
+// MARK: - HTTP Method
+
 enum HTTPMethod: String {
     case get = "GET"
     case post = "POST"
@@ -23,7 +25,7 @@ enum HTTPMethod: String {
 
 final class OAuth2Service {
     
-    // MARK: - OAuth-specific constants
+    // MARK: - Constants
     
     private enum OAuthConstants {
         static let tokenURLString = "https://unsplash.com/oauth/token"

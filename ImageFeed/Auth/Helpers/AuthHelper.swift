@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Logging
 
 public protocol AuthHelperProtocol: AnyObject {
     func authRequest() -> URLRequest?
@@ -13,32 +14,22 @@ public protocol AuthHelperProtocol: AnyObject {
 }
 
 final class AuthHelper: AuthHelperProtocol {
+    // MARK: - Private Properties
     
-    let configuration: AuthConfiguration
+    private let logger = Logger(label: "AuthHelper")
+    private let configuration: AuthConfiguration
+    
+    // MARK: - Init
     
     init(configuration: AuthConfiguration = .standard) {
         self.configuration = configuration
     }
     
-    func authURL() -> URL? {
-        guard var urlComponents = URLComponents(string: configuration.authURLString) else {
-            print("❌ Failed to create URLComponents for authorize URL")
-            return nil
-        }
-        
-        urlComponents.queryItems = [
-            URLQueryItem(name: "client_id", value: configuration.accessKey),
-            URLQueryItem(name: "redirect_uri", value: configuration.redirectURI),
-            URLQueryItem(name: "response_type", value: "code"),
-            URLQueryItem(name: "scope", value: configuration.accessScope),
-        ]
-        
-        return urlComponents.url
-    }
+    // MARK: - Public
     
     func authRequest() -> URLRequest? {
         guard let url = authURL() else {
-            print("❌ Failed to build authorize URL")
+            logger.error("Failed to build authorize URL")
             return nil
         }
         return URLRequest(url: url)
@@ -56,5 +47,20 @@ final class AuthHelper: AuthHelperProtocol {
             return nil
         }
     }
+    
+    func authURL() -> URL? {
+        guard var urlComponents = URLComponents(string: configuration.authURLString) else {
+            logger.error("Failed to create URLComponents for authorize URL")
+            return nil
+        }
+        
+        urlComponents.queryItems = [
+            URLQueryItem(name: "client_id", value: configuration.accessKey),
+            URLQueryItem(name: "redirect_uri", value: configuration.redirectURI),
+            URLQueryItem(name: "response_type", value: "code"),
+            URLQueryItem(name: "scope", value: configuration.accessScope),
+        ]
+        
+        return urlComponents.url
+    }
 }
-

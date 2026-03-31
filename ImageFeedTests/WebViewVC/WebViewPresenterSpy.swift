@@ -8,11 +8,17 @@
 import ImageFeed
 import Foundation
 
+// MARK: - WebViewPresenterSpy
+
 @MainActor
 final class WebViewPresenterSpy: WebViewPresenterProtocol {
+    // MARK: - State
     var viewDidLoadCalled: Bool = false
+
+    // MARK: - Public Properties
     var view: WebViewViewControllerProtocol?
-    
+
+    // MARK: - Public
     func viewDidLoad() {
         viewDidLoadCalled = true
     }
@@ -21,7 +27,5 @@ final class WebViewPresenterSpy: WebViewPresenterProtocol {
         
     }
     
-    func code(from url: URL) -> String? {
-        return nil
-    }
+    func code(from url: URL) -> String? { nil }
 }

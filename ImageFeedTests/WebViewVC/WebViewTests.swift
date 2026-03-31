@@ -11,10 +11,15 @@ import XCTest
 @MainActor
 final class WebViewTests: XCTestCase {
     
+    // MARK: - Properties
+    
     private var viewController: WebViewViewControllerSpy!
     private var presenterSpy: WebViewPresenterSpy!
     private var presenter: WebViewPresenter!
     private var authHelper: AuthHelperSpy!
+    
+    
+    // MARK: - Lifecycle
     
     override func setUpWithError() throws {
         viewController = WebViewViewControllerSpy()
@@ -22,6 +27,8 @@ final class WebViewTests: XCTestCase {
         authHelper = AuthHelperSpy()
         presenter = WebViewPresenter(authHelper: authHelper)
     }
+    
+    // MARK: - Tests
     
     func testViewControllerCallsViewDidLoad() {
         viewController.presenter = presenterSpy

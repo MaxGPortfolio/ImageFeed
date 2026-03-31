@@ -8,6 +8,17 @@
 import UIKit
 import Kingfisher
 
+@MainActor
+protocol ProfileViewControllerProtocol: AnyObject {
+    var presenter: ProfilePresenterProtocol? { get set }
+    
+    func updateProfileDetails(name: String, username: String, bio: String)
+    func updateAvatar(with url: URL?)
+    func showLogoutAlert()
+    func switchToSplashViewController()
+}
+
+@MainActor
 final class ProfileViewController: UIViewController {
     
     // MARK: - Constants
@@ -34,14 +45,10 @@ final class ProfileViewController: UIViewController {
     
     // MARK: - Public Properties
     
+    var presenter: ProfilePresenterProtocol?
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
     
     // MARK: - Private Properties
-    
-    private let profileService = ProfileService.shared
-    private var profileImageServiceObserver: NSObjectProtocol?
-    private let profileImageService = ProfileImageService.shared
-    private let profilelogoutService = ProfileLogoutService.shared
     
     private lazy var profileImageView: UIImageView = {
         let imageView = UIImageView()
@@ -97,17 +104,7 @@ final class ProfileViewController: UIViewController {
         setupConstraints()
         setupActions()
         configureUI()
-        updateProfileLabelsIfNeeded()
-        
-        profileImageServiceObserver = NotificationCenter.default
-            .addObserver(
-                forName: ProfileImageService.didChangeNotification,
-                object: profileImageService,
-                queue: .main
-            ) { [weak self] _ in
-                self?.updateAvatar()
-            }
-        updateAvatar()
+        presenter?.viewDidLoad()
     }
     
     override func viewDidLayoutSubviews() {
@@ -117,55 +114,7 @@ final class ProfileViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        updateProfileLabelsIfNeeded()
-    }
-    
-    deinit {
-        if let observer = profileImageServiceObserver {
-            NotificationCenter.default.removeObserver(observer)
-        }
-    }
-    
-    // MARK: - Private Helpers
-    
-    private func updateAvatar() {
-        guard
-            let profileImageURL = profileImageService.avatarURL,
-            let url = URL(string: profileImageURL)
-        else {
-            profileImageView.image = Constants.placeholderImage
-            return
-        }
-        
-        print("imageUrl: \(url)")
-        
-        let placeholderImage = Constants.placeholderImage
-        
-        profileImageView.kf.setImage(
-            with: url,
-            placeholder: placeholderImage,
-            options: [
-                .scaleFactor(UIScreen.main.scale),
-                .cacheOriginalImage,
-            ]) { result in
-                
-                switch result {
-                    
-                case .success(let value):
-                    print(value.image)
-                    print(value.cacheType)
-                    print(value.source)
-                case .failure(let error):
-                    print(error)
-                }
-            }
-    }
-    
-    private func updateProfileLabelsIfNeeded() {
-        guard let profile = profileService.profile else { return }
-        nameLabel.text = profile.name
-        usernameLabel.text = profile.loginName
-        bioLabel.text = profile.bio
+        presenter?.viewWillAppear()
     }
     
     // MARK: - Setup
@@ -226,24 +175,43 @@ final class ProfileViewController: UIViewController {
         profileImageView.layer.cornerRadius = profileImageView.bounds.width / 2
     }
     
-    private func switchToSplashViewController() {
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let window = windowScene.windows.first else {
+    private func applyAvatar(with url: URL?) {
+        guard let url else {
+            profileImageView.image = Constants.placeholderImage
             return
         }
         
-        window.rootViewController = SplashViewController()
-        window.makeKeyAndVisible()
+        profileImageView.kf.setImage(
+            with: url,
+            placeholder: Constants.placeholderImage,
+            options: [
+                .scaleFactor(UIScreen.main.scale),
+                .cacheOriginalImage,
+            ]
+        )
     }
     
     // MARK: - Actions
     
     @objc
     private func didTapLogoutButton() {
-        showLogoutAlert()
+        presenter?.didTapLogoutButton()
+    }
+}
+
+@MainActor
+extension ProfileViewController: ProfileViewControllerProtocol {
+    func updateProfileDetails(name: String, username: String, bio: String) {
+        nameLabel.text = name
+        usernameLabel.text = username
+        bioLabel.text = bio
     }
     
-    private func showLogoutAlert() {
+    func updateAvatar(with url: URL?) {
+        applyAvatar(with: url)
+    }
+    
+    func showLogoutAlert() {
         let alert = UIAlertController(
             title: "Пока, пока!",
             message: "Уверены, что хотите выйти?",
@@ -251,9 +219,7 @@ final class ProfileViewController: UIViewController {
         )
         
         let yesAction = UIAlertAction(title: "Да", style: .default) { [weak self] _ in
-            guard let self else { return }
-            self.profilelogoutService.logout()
-            self.switchToSplashViewController()
+            self?.presenter?.didConfirmLogout()
         }
         
         let noAction = UIAlertAction(title: "Нет", style: .default)
@@ -261,5 +227,15 @@ final class ProfileViewController: UIViewController {
         alert.addAction(yesAction)
         alert.addAction(noAction)
         present(alert, animated: true)
+    }
+    
+    func switchToSplashViewController() {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first else {
+            return
+        }
+        
+        window.rootViewController = SplashViewController()
+        window.makeKeyAndVisible()
     }
 }

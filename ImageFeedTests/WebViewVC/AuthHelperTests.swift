@@ -10,8 +10,12 @@ import XCTest
 
 final class AuthHelperTests: XCTestCase {
     
+    // MARK: - Properties
+    
     private var configuration: AuthConfiguration!
     private var authHelper: AuthHelper!
+    
+    // MARK: - Lifecycle
     
     override func setUpWithError() throws {
         configuration = AuthConfiguration(
@@ -25,6 +29,8 @@ final class AuthHelperTests: XCTestCase {
         
         authHelper = AuthHelper(configuration: configuration)
     }
+    
+    // MARK: - Tests
     
     func testAuthHelperAuthURL() {
         let url = authHelper.authURL()

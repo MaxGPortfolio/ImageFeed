@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Logging
 import Kingfisher
 
 final class SingleImageViewController: UIViewController {
@@ -42,6 +43,8 @@ final class SingleImageViewController: UIViewController {
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
     
     // MARK: - Private Properties
+    
+    private let logger = Logger(label: "SingleImageViewController")
     
     private lazy var imageView: UIImageView = {
         let imageView = UIImageView()
@@ -169,7 +172,7 @@ final class SingleImageViewController: UIViewController {
                 self.hasConfiguredImage = true
                 self.lastScrollViewBounds = self.scrollView.bounds
             case .failure(let error):
-                print("Ошибка загрузки изображения: \(error)")
+                self.logger.error("Failed to load image: \(error.localizedDescription)")
                 self.showPlaceholder()
                 self.showImageLoadErrorAlert()
             }
@@ -261,6 +264,8 @@ final class SingleImageViewController: UIViewController {
         present(alert, animated: true)
     }
 }
+
+// MARK: - UIScrollViewDelegate
 
 extension SingleImageViewController: UIScrollViewDelegate {
     func viewForZooming(in scrollView: UIScrollView) -> UIView? {

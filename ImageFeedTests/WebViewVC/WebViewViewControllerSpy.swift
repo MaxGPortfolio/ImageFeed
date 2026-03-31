@@ -11,9 +11,15 @@ import Foundation
 @MainActor
 final class WebViewViewControllerSpy: WebViewViewControllerProtocol {
     
+    // MARK: - Public Properties
+    
     var presenter: ImageFeed.WebViewPresenterProtocol?
     
+    // MARK: - State
+    
     var loadRequestCalled = false
+    
+    // MARK: - Public
     
     func simulateViewDidLoad() {
         presenter?.viewDidLoad()

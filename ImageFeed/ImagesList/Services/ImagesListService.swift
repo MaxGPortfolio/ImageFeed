@@ -63,13 +63,15 @@ struct Photo {
     }
 }
 
-final class ImagesListService {
+final class ImagesListService: ImagesListServiceProtocol {
     
     // MARK: - Constants
     
     private enum Constants {
         static let photosURLString = "https://api.unsplash.com/photos"
     }
+    
+    // MARK: - HTTP Method
     
     private enum HTTPMethod: String {
         case get = "GET"
@@ -87,13 +89,17 @@ final class ImagesListService {
     
     static let shared = ImagesListService()
     
-    // MARK: - Properties
+    // MARK: - Private Properties
     
     private let tokenStorage = OAuth2TokenStorage.shared
     private let urlSession = URLSession.shared
     private var task: URLSessionTask?
     private var lastLoadedPage: Int?
     private let logger = Logger(label: "ImagesListService")
+    
+    // MARK: - Public Properties
+    
+    static let didChangeNotification = Notification.Name(rawValue: "ImagesListServiceDidChange")
     private(set) var photos: [Photo] = []
     
     // MARK: - Init
@@ -101,8 +107,6 @@ final class ImagesListService {
     private init() {}
     
     // MARK: - Public
-    
-    static let didChangeNotification = Notification.Name(rawValue: "ImagesListServiceDidChange")
     
     func fetchPhotosNextPage() {
         assert(Thread.isMainThread)
@@ -129,26 +133,29 @@ final class ImagesListService {
         }
         
         let task = urlSession.data(for: request) { [weak self] result in
-            guard let self else { return }
-            switch result {
-            case .success:
-                if let index = self.photos.firstIndex(where: { $0.id == photoId }) {
-                    let photo = self.photos[index]
-                    let newPhoto = Photo(
-                        id: photo.id,
-                        size: photo.size,
-                        createdAt: photo.createdAt,
-                        welcomeDescription: photo.welcomeDescription,
-                        regularImageURL: photo.regularImageURL,
-                        largeImageURL: photo.largeImageURL,
-                        isLiked: !photo.isLiked
-                    )
-                    self.photos[index] = newPhoto
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                
+                switch result {
+                case .success:
+                    if let index = self.photos.firstIndex(where: { $0.id == photoId }) {
+                        let photo = self.photos[index]
+                        let newPhoto = Photo(
+                            id: photo.id,
+                            size: photo.size,
+                            createdAt: photo.createdAt,
+                            welcomeDescription: photo.welcomeDescription,
+                            regularImageURL: photo.regularImageURL,
+                            largeImageURL: photo.largeImageURL,
+                            isLiked: !photo.isLiked
+                        )
+                        self.photos[index] = newPhoto
+                    }
+                    completion(.success(()))
+                case .failure(let error):
+                    self.logger.error("Failed to change like for photo \(photoId): \(error.localizedDescription)")
+                    completion(.failure(error))
                 }
-                completion(.success(()))
-            case .failure(let error):
-                logger.error("Failed to change like for photo \(photoId): \(error.localizedDescription)")
-                completion(.failure(error))
             }
         }
         task.resume()
@@ -178,28 +185,25 @@ final class ImagesListService {
         
         var requestTask: URLSessionTask?
         requestTask = urlSession.objectTask(for: request) { [weak self] (result: Result<[PhotoResult], Error>) in
-            guard let self else {
-                return
-            }
-            
-            guard self.task === requestTask else { return }
-            
-            defer { self.task = nil }
-            
-            switch result {
-            case .success(let photoResults):
-                let newPhotos = photoResults.map { Photo(result: $0 )}
+            Task { @MainActor [weak self] in
+                guard let self else { return }
                 
-                self.photos.append(contentsOf: newPhotos)
-                self.lastLoadedPage = page
+                guard self.task === requestTask else { return }
                 
-                NotificationCenter.default.post(
-                    name: Self.didChangeNotification,
-                    object: self
-                )
+                defer { self.task = nil }
                 
-            case .failure(let error):
-                logger.error("Failed to fetch photos on page \(page): \(error.localizedDescription)")
+                switch result {
+                case .success(let photoResults):
+                    let newPhotos = photoResults.map { Photo(result: $0) }
+                    self.photos.append(contentsOf: newPhotos)
+                    self.lastLoadedPage = page
+                    NotificationCenter.default.post(
+                        name: Self.didChangeNotification,
+                        object: self
+                    )
+                case .failure(let error):
+                    self.logger.error("Failed to fetch photos on page \(page): \(error.localizedDescription)")
+                }
             }
         }
         
@@ -208,7 +212,6 @@ final class ImagesListService {
     }
     
     private func makePhotosRequest(page: Int, token: String) -> URLRequest? {
-        
         guard var urlComponents = URLComponents(string: Constants.photosURLString) else {
             logger.error("Failed to create URLComponents for photos request")
             return nil
@@ -216,7 +219,7 @@ final class ImagesListService {
         
         urlComponents.queryItems = [
             URLQueryItem(name: "page", value: "\(page)"),
-            URLQueryItem(name: "per_page", value: "10")
+            URLQueryItem(name: "per_page", value: "10"),
         ]
         
         guard let url = urlComponents.url else {

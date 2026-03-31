@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Logging
 import ProgressHUD
 
 protocol AuthViewControllerDelegate: AnyObject {
@@ -34,6 +35,7 @@ final class AuthViewController: UIViewController {
     
     // MARK: - Private Properties
     
+    private let logger = Logger(label: "AuthViewController")
     private let oauth2Service = OAuth2Service.shared
     private let tokenStorage = OAuth2TokenStorage.shared
     
@@ -61,6 +63,7 @@ final class AuthViewController: UIViewController {
     // MARK: - Public Properties
     
     weak var delegate: AuthViewControllerDelegate?
+    
     override var preferredStatusBarStyle: UIStatusBarStyle {
         .lightContent
     }
@@ -103,7 +106,8 @@ final class AuthViewController: UIViewController {
         let alert = UIAlertController(
             title: "Что-то пошло не так(",
             message: "Не удалось войти в систему",
-            preferredStyle: .alert)
+            preferredStyle: .alert
+        )
         
         alert.addAction(UIAlertAction(title: "ОК", style: .default))
         present(alert, animated: true)
@@ -124,10 +128,10 @@ extension AuthViewController: WebViewViewControllerDelegate {
             switch result {
             case .success(let token):
                 tokenStorage.token = token
-                print("✅ saved token:", tokenStorage.token ?? "nil")
+                logger.info("OAuth token saved successfully")
                 delegate?.didAuthenticate(self)
             case .failure(let error):
-                print("❌ Failed to fetch token:", error)
+                logger.error("Failed to fetch OAuth token: \(error.localizedDescription)")
                 showAuthErrorAlert()
             }
         }
