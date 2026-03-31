@@ -14,6 +14,8 @@ struct OAuthTokenResponseBody: Decodable {
     let accessToken: String
 }
 
+// MARK: - HTTP Method
+
 enum HTTPMethod: String {
     case get = "GET"
     case post = "POST"
@@ -23,7 +25,7 @@ enum HTTPMethod: String {
 
 final class OAuth2Service {
     
-    // MARK: - OAuth-specific constants
+    // MARK: - Constants
     
     private enum OAuthConstants {
         static let tokenURLString = "https://unsplash.com/oauth/token"
@@ -113,7 +115,7 @@ final class OAuth2Service {
         urlComponents.queryItems = [
             URLQueryItem(name: "client_id", value: Constants.accessKey),
             URLQueryItem(name: "client_secret", value: Constants.secretKey),
-            URLQueryItem(name: "redirect_uri", value: Constants.redirectURL),
+            URLQueryItem(name: "redirect_uri", value: Constants.redirectURI),
             URLQueryItem(name: "code", value: code),
             URLQueryItem(name: "grant_type", value: OAuthConstants.grantTypeAuthorizationCode),
         ]

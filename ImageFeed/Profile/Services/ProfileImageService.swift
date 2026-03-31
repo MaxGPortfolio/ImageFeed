@@ -7,6 +7,10 @@
 import Foundation
 import Logging
 
+protocol ProfileImageServiceProtocol: AnyObject {
+    var avatarURL: String? { get }
+}
+
 // MARK: - Models
 
 struct UserResult: Codable {
@@ -17,7 +21,7 @@ struct UserResult: Codable {
     }
 }
 
-final class ProfileImageService {
+final class ProfileImageService: ProfileImageServiceProtocol {
     
     // MARK: - Constants
     
@@ -39,7 +43,7 @@ final class ProfileImageService {
     
     static let shared = ProfileImageService()
     
-    // MARK: - Properties
+    // MARK: - Private Properties
     
     private let urlSession = URLSession.shared
     private var task: URLSessionTask?

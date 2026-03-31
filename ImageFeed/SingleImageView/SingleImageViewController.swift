@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Logging
 import Kingfisher
 
 final class SingleImageViewController: UIViewController {
@@ -19,12 +20,14 @@ final class SingleImageViewController: UIViewController {
         static let backButtonSize: CGFloat = 24
         static let backButtonTopInset: CGFloat = 11
         static let backButtonLeadingInset: CGFloat = 8
+        static let backButtonImage = UIImage(resource: .backArrowWhite)
+        static let backButtonImageIdentifier = "backArrowWhite"
+        
         static let shareButtonSize: CGFloat = 50
         static let shareButtonBottomConstraintHasHomeIndicator: CGFloat = 17
         static let shareButtonBottomConstraintDoesNotHaveHomeIndicator: CGFloat = 30
-        
-        static let backButtonImage = UIImage(resource: .backArrowWhite)
         static let shareButtonImage = UIImage(resource: .sharing)
+        
         static let placeholderImage = UIImage(resource: .stubIcon)
         static let placeholderImageViewHeight: CGFloat = 75
         static let placeholderImageViewWidth: CGFloat = 83
@@ -40,6 +43,8 @@ final class SingleImageViewController: UIViewController {
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
     
     // MARK: - Private Properties
+    
+    private let logger = Logger(label: "SingleImageViewController")
     
     private lazy var imageView: UIImageView = {
         let imageView = UIImageView()
@@ -57,6 +62,7 @@ final class SingleImageViewController: UIViewController {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(Constants.backButtonImage, for: .normal)
+        button.accessibilityIdentifier = Constants.backButtonImageIdentifier
         return button
     }()
     
@@ -166,7 +172,7 @@ final class SingleImageViewController: UIViewController {
                 self.hasConfiguredImage = true
                 self.lastScrollViewBounds = self.scrollView.bounds
             case .failure(let error):
-                print("Ошибка загрузки изображения: \(error)")
+                self.logger.error("Failed to load image: \(error.localizedDescription)")
                 self.showPlaceholder()
                 self.showImageLoadErrorAlert()
             }
@@ -258,6 +264,8 @@ final class SingleImageViewController: UIViewController {
         present(alert, animated: true)
     }
 }
+
+// MARK: - UIScrollViewDelegate
 
 extension SingleImageViewController: UIScrollViewDelegate {
     func viewForZooming(in scrollView: UIScrollView) -> UIView? {

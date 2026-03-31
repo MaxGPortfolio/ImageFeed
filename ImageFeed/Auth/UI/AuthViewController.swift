@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Logging
 import ProgressHUD
 
 protocol AuthViewControllerDelegate: AnyObject {
@@ -17,10 +18,10 @@ final class AuthViewController: UIViewController {
     // MARK: - Constants
     
     private enum Constants {
-        static let backArrowImageName = UIImage(resource: .backArrowBlack)
-        static let authLogoImageName = UIImage(resource: .authScreenLogo)
+        static let backArrowImage = UIImage(resource: .backArrowBlack)
+        static let authLogoImage = UIImage(resource: .authScreenLogo)
         static let loginButtonTitleColor = UIColor(resource: .ypBlack)
-        static let navigationTintColorName = UIColor(resource: .ypBlack)
+        static let navigationTintColor = UIColor(resource: .ypBlack)
     }
     
     private enum LayoutConstants {
@@ -34,12 +35,13 @@ final class AuthViewController: UIViewController {
     
     // MARK: - Private Properties
     
+    private let logger = Logger(label: "AuthViewController")
     private let oauth2Service = OAuth2Service.shared
     private let tokenStorage = OAuth2TokenStorage.shared
     
     private lazy var authLogoImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = Constants.authLogoImageName
+        imageView.image = Constants.authLogoImage
         imageView.contentMode = .scaleAspectFit
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
@@ -54,12 +56,14 @@ final class AuthViewController: UIViewController {
         button.layer.masksToBounds = true
         button.translatesAutoresizingMaskIntoConstraints = false
         button.layer.cornerRadius = LayoutConstants.loginCornerRadius
+        button.accessibilityIdentifier = "Authenticate"
         return button
     }()
     
     // MARK: - Public Properties
     
     weak var delegate: AuthViewControllerDelegate?
+    
     override var preferredStatusBarStyle: UIStatusBarStyle {
         .lightContent
     }
@@ -84,10 +88,10 @@ final class AuthViewController: UIViewController {
     // MARK: - Private
     
     private func configureBackButton() {
-        navigationController?.navigationBar.backIndicatorImage = Constants.backArrowImageName
-        navigationController?.navigationBar.backIndicatorTransitionMaskImage = Constants.backArrowImageName
+        navigationController?.navigationBar.backIndicatorImage = Constants.backArrowImage
+        navigationController?.navigationBar.backIndicatorTransitionMaskImage = Constants.backArrowImage
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
-        navigationController?.navigationBar.tintColor = Constants.navigationTintColorName
+        navigationController?.navigationBar.tintColor = Constants.navigationTintColor
     }
     
     private func closeWebView(_ viewController: UIViewController) {
@@ -102,7 +106,8 @@ final class AuthViewController: UIViewController {
         let alert = UIAlertController(
             title: "Что-то пошло не так(",
             message: "Не удалось войти в систему",
-            preferredStyle: .alert)
+            preferredStyle: .alert
+        )
         
         alert.addAction(UIAlertAction(title: "ОК", style: .default))
         present(alert, animated: true)
@@ -123,10 +128,10 @@ extension AuthViewController: WebViewViewControllerDelegate {
             switch result {
             case .success(let token):
                 tokenStorage.token = token
-                print("✅ saved token:", tokenStorage.token ?? "nil")
+                logger.info("OAuth token saved successfully")
                 delegate?.didAuthenticate(self)
             case .failure(let error):
-                print("❌ Failed to fetch token:", error)
+                logger.error("Failed to fetch OAuth token: \(error.localizedDescription)")
                 showAuthErrorAlert()
             }
         }
@@ -180,7 +185,12 @@ private extension AuthViewController {
     // MARK: - Actions
     @objc
     private func didTapLoginButton() {
+        let authHelper = AuthHelper()
         let webVC = WebViewViewController()
+        let webViewPresenter = WebViewPresenter(authHelper: authHelper)
+        
+        webVC.presenter = webViewPresenter
+        webViewPresenter.view = webVC
         webVC.delegate = self
         
         navigationController?.pushViewController(webVC, animated: true)

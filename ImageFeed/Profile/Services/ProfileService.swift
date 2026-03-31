@@ -8,6 +8,10 @@
 import Foundation
 import Logging
 
+protocol ProfileServiceProtocol: AnyObject {
+    var profile: Profile? { get }
+}
+
 // MARK: - Models
 
 struct ProfileResult: Codable {
@@ -34,7 +38,7 @@ struct Profile {
     }
 }
 
-final class ProfileService {
+final class ProfileService: ProfileServiceProtocol {
     
     // MARK: - Constants
     

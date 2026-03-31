@@ -27,12 +27,22 @@ final class TabBarController: UITabBarController {
         setupAppearance()
     }
     
-    // MARK: - Private
+    // MARK: - Setup
     
     private func setupViewControllers() {
         
-        let feedNav = UINavigationController(rootViewController: ImagesListViewController())
-        let profileNav = UINavigationController(rootViewController: ProfileViewController())
+        let imagesListVC = ImagesListViewController()
+        let imagesListPresenter: ImagesListPresenter = ImagesListPresenter()
+        imagesListVC.presenter = imagesListPresenter
+        imagesListPresenter.view = imagesListVC
+        
+        let profileVC = ProfileViewController()
+        let profilePresenter: ProfilePresenter = ProfilePresenter()
+        profileVC.presenter = profilePresenter
+        profilePresenter.view = profileVC
+        
+        let feedNav = UINavigationController(rootViewController: imagesListVC)
+        let profileNav = UINavigationController(rootViewController: profileVC)
         
         feedNav.tabBarItem = UITabBarItem(
             title: "",
@@ -46,7 +56,7 @@ final class TabBarController: UITabBarController {
             selectedImage: Constants.profileTabSelectedImage
         )
         
-        viewControllers = [feedNav, profileNav]
+        viewControllers = [feedNav, profileNav,]
         
         feedNav.setNavigationBarHidden(true, animated: false)
         profileNav.setNavigationBarHidden(true, animated: false)
@@ -54,6 +64,8 @@ final class TabBarController: UITabBarController {
         feedNav.view.backgroundColor = .ypBlack
         profileNav.view.backgroundColor = .ypBlack
     }
+    
+    // MARK: - Appearance
     
     private func setupAppearance() {
         let appearance = UITabBarAppearance()
